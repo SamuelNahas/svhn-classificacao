@@ -68,7 +68,8 @@ notebook confere que os pesos salvos reproduzem a acurácia de teste.
 ## Testes e CI
 
 O notebook tem um modo de teste, ligado por `SVHN_SMOKE=1`: usa dados aleatórios no formato do SVHN (sem
-baixar o dataset), 2 épocas e grava tudo em `smoke/`, sem tocar em `results/` nem em `weights/`. Sem a
+baixar o dataset), 2 épocas e grava tudo em `smoke/` (apagado a cada execução, para sempre treinar de novo), sem tocar em
+`results/` nem em `weights/`. Sem a
 variável, o notebook roda normalmente.
 
 O GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) executa o notebook inteiro nesse modo

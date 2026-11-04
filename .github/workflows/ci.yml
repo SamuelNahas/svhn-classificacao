@@ -20,9 +20,10 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - name: Instalar dependências (PyTorch CPU)
+        # Só o índice CPU para torch/torchvision, para o pip nunca escolher a build CUDA (~2 GB) do PyPI.
         run: |
-          pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
-          pip install nbconvert ipykernel
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt nbconvert ipykernel
 
       - name: Executar o notebook com dados aleatórios
         env:
@@ -40,4 +41,4 @@ jobs:
           path: |
             smoke-executed.ipynb
             smoke/results/
-          if-no-files-found: ignore
+          if-no-files-found: warn

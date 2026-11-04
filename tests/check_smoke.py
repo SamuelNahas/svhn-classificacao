@@ -7,12 +7,20 @@ import json
 import sys
 from pathlib import Path
 
-N_EXPERIMENTS = 15
+N_EXPERIMENTS = 15  # fixo de propósito: mudar os experimentos do notebook exige atualizar aqui
 
 
 def check(root):
+    try:
+        return check_outputs(root)
+    except Exception as e:  # arquivo ou chave ausente: vira erro na lista, não traceback
+        return [f"{type(e).__name__}: {e}"]
+
+
+def check_outputs(root):
     results, errors = root / "results", []
-    rows = list(csv.DictReader(open(results / "results.csv")))
+    with open(results / "results.csv") as f:
+        rows = list(csv.DictReader(f))
     if len(rows) != N_EXPERIMENTS:
         errors.append(f"results.csv tem {len(rows)} experimentos, esperado {N_EXPERIMENTS}")
     for r in rows:
