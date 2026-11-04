@@ -53,9 +53,20 @@ Saídas em `results/`:
 - `<experimento>.png`: curvas de loss e acurácia.
 - `comparacao_validacao.png`: acurácia de validação dos principais modelos.
 
+## Modelo final
+
+No fim do notebook, o experimento com a **maior acurácia de validação** é retreinado com todo o
+`split="train"` (treino + validação), pelo número de épocas da sua melhor validação e com a mesma semente.
+
+- `weights/best.pt`: pesos, config, média e desvio da normalização (usados na predição).
+- `results/final.json`: arquitetura, número de parâmetros, acurácia de validação do experimento e acurácia de teste.
+
+Se `weights/best.pt` já existe com a mesma config, ele é carregado em vez de retreinado. Ao recarregar, o
+notebook confere que os pesos salvos reproduzem a acurácia de teste.
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
 - [ ] Relatório em PDF
-- [ ] Pesos: `weights/best.pt`
+- [ ] Pesos: `weights/best.pt` (gerado pelo notebook no Colab)
 - [ ] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
