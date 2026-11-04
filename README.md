@@ -56,7 +56,8 @@ Saídas em `results/`:
 ## Modelo final
 
 No fim do notebook, o experimento com a **maior acurácia de validação** é retreinado com todo o
-`split="train"` (treino + validação), pelo número de épocas da sua melhor validação e com a mesma semente.
+`split="train"` (treino + validação), com a mesma config e semente, parando na época da sua melhor validação
+(mesmo agendamento de LR do experimento).
 
 - `weights/best.pt`: pesos, config, média e desvio da normalização (usados na predição).
 - `results/final.json`: arquitetura, número de parâmetros, acurácia de validação do experimento e acurácia de teste.
