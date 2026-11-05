@@ -98,6 +98,13 @@ No fim do notebook, o experimento com a **maior acurácia de validação** é re
 Se `weights/best.pt` já existe com a mesma config, ele é carregado em vez de retreinado. Ao recarregar, o
 notebook confere que os pesos salvos reproduzem a acurácia de teste.
 
+## Predições do conjunto adicional
+
+Depois do modelo final, o notebook classifica as imagens do professor e grava
+`SAMUEL_WILKER_BERNARDO_RESULTS.txt`: uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
+Antes de rodar, coloque as imagens (`000000.png`, `000001.png`, ...) em `data/adicional/`: no Colab, faça
+upload e descompacte lá; localmente, basta um link, por exemplo `ln -s ~/Downloads/images data/adicional`.
+
 ## Testes e CI
 
 O notebook tem um modo de teste, ligado por `SVHN_SMOKE=1`: usa dados aleatórios no formato do SVHN (sem
@@ -108,7 +115,7 @@ variável, o notebook roda normalmente.
 O GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) executa o notebook inteiro nesse modo
 em cada PR e em cada push na `main`, e [`tests/check_smoke.py`](tests/check_smoke.py) confere as saídas:
 28 experimentos, acurácias entre 0 e 1, losses positivas, curvas, `final.json`, pesos salvos, kNN,
-random subsampling e análise de erros. O notebook
+random subsampling, análise de erros e o arquivo de predições (uma linha por imagem, só dígitos). O notebook
 executado fica disponível como artefato do job.
 
 Para rodar localmente (cerca de 1 min):
@@ -123,5 +130,5 @@ python tests/check_smoke.py smoke
 
 - [x] Código: `svhn.ipynb`
 - [ ] Relatório em PDF
-- [ ] Pesos: `weights/best.pt` (gerado pelo notebook no Colab)
-- [ ] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
+- [x] Pesos: `weights/best.pt`
+- [x] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`

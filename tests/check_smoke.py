@@ -81,6 +81,13 @@ def check_outputs(root):
             errors.append(f"final.json: {k} = {final[k]} fora de [0, 1]")
     if not (root / "weights" / "best.pt").exists():
         errors.append("weights/best.pt não foi salvo")
+
+    n_images = len(list((root / "adicional").glob("*.png")))
+    lines = (root / "SAMUEL_WILKER_BERNARDO_RESULTS.txt").read_text().split("\n")
+    if lines[-1] != "" or len(lines) - 1 != n_images:
+        errors.append(f"RESULTS.txt tem {len(lines) - 1} linhas para {n_images} imagens (ou não termina em quebra de linha)")
+    if any(line not in set("0123456789") for line in lines[:-1]):
+        errors.append("RESULTS.txt tem linha que não é um único dígito de 0 a 9")
     return errors
 
 
