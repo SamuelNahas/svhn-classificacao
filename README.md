@@ -40,8 +40,8 @@ qual material da disciplina veio a ideia.
 | 5 | `mlp_lr_1e-2` | lr 1e-2 (3) | backpropagation |
 | 6 | `mlp_batch_32` | batch 32 (3) | backpropagation |
 | 7 | `mlp_batch_256` | batch 256 (3) | backpropagation |
-| 8 | `mlp_sgd` | SGD, lr 0,01 (3) | backpropagation |
-| 9 | `mlp_sgd_momentum` | SGD + momentum 0,9, lr 0,01 (3) | backpropagation |
+| 8 | `mlp_sgd` | otimizador SGD no lugar do Adam (5, mesma lr 0,01) | backpropagation |
+| 9 | `mlp_sgd_momentum` | + momentum 0,9 (8) | backpropagation |
 | 10 | `mlp_100` | uma camada oculta de 100 (3) | aula-2 |
 | 11 | `mlp_leaky_relu` | Leaky ReLU (3) | aula-2 |
 | 12 | `mlp_tanh` | tanh (3) | aula-2 |

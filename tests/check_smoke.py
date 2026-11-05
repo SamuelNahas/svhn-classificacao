@@ -4,10 +4,12 @@ Uso: python tests/check_smoke.py [smoke]
 """
 import csv
 import json
+import math
 import sys
 from pathlib import Path
 
 N_EXPERIMENTS = 28  # fixo de propósito: mudar os experimentos do notebook exige atualizar aqui
+N_SPLITS_SMOKE = 2  # divisões do random subsampling no modo de teste
 
 
 def check(root):
@@ -53,6 +55,14 @@ def check_outputs(root):
     for r in sub:
         if not 0 <= float(r["val_media"]) <= 1 or not 0 <= float(r["teste_media"]) <= 1:
             errors.append(f"subsampling {r['modelo']}: médias fora de [0, 1]")
+        if int(r["divisoes"]) != N_SPLITS_SMOKE:
+            errors.append(f"subsampling {r['modelo']}: {r['divisoes']} divisões, esperado {N_SPLITS_SMOKE}")
+        if not all(math.isfinite(float(r[k])) for k in ("val_desvio", "teste_desvio")):
+            errors.append(f"subsampling {r['modelo']}: desvio não é finito")
+
+    svm = [r for r in rows if r["modificacao"] == "linear_svm"]
+    if not svm or not float(svm[0].get("val_loss_svm") or "nan") > 0:
+        errors.append("linear_svm sem val_loss_svm positiva")
 
     with open(results / "metricas_por_classe.csv") as f:
         per_class = list(csv.DictReader(f))
