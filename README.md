@@ -65,6 +65,26 @@ No fim do notebook, o experimento com a **maior acurácia de validação** é re
 Se `weights/best.pt` já existe com a mesma config, ele é carregado em vez de retreinado. Ao recarregar, o
 notebook confere que os pesos salvos reproduzem a acurácia de teste.
 
+## Testes e CI
+
+O notebook tem um modo de teste, ligado por `SVHN_SMOKE=1`: usa poucos dados aleatórios no formato do SVHN (500 de treino e 200 de teste, sem
+baixar o dataset), 2 épocas e grava tudo em `smoke/` (apagado a cada execução, para sempre treinar de novo), sem tocar em
+`results/` nem em `weights/`. Sem a
+variável, o notebook roda normalmente.
+
+O GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) executa o notebook inteiro nesse modo
+em cada PR e em cada push na `main` (exceto quando só mudam arquivos `.md`), e [`tests/check_smoke.py`](tests/check_smoke.py) confere as saídas:
+15 experimentos, acurácias entre 0 e 1, losses positivas, curvas, `final.json` e pesos salvos. O notebook
+executado fica disponível como artefato do job.
+
+Para rodar localmente (cerca de 1 min):
+
+```bash
+pip install -r requirements.txt nbconvert ipykernel
+SVHN_SMOKE=1 jupyter nbconvert --to notebook --execute svhn.ipynb --output smoke-executed.ipynb
+python tests/check_smoke.py smoke
+```
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
