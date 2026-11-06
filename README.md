@@ -35,7 +35,10 @@ O SVHN vem do `torchvision`. Se o servidor de Stanford estiver fora do ar, o not
 dados do espelho oficial no Hugging Face (`ufldl-stanford/svhn`, em parquet), no mesmo formato e na mesma ordem.
 
 Os experimentos já concluídos ficam salvos em `results/` e não são retreinados quando o notebook roda de novo:
-com o `results/` e o `weights/` deste repositório, o notebook inteiro roda em poucos minutos. Para não perder
+com o `results/` e o `weights/` deste repositório, o notebook inteiro roda em poucos minutos. No Colab, envie também
+essas duas pastas (ou rode `!git clone https://github.com/SamuelNahas/svhn-classificacao` e `%cd svhn-classificacao` antes de
+executar o notebook, para ele achar essas pastas); só com o notebook, tudo é retreinado.
+Sem imagens em `data/adicional/`, a última célula pula as predições em vez de falhar. Para não perder
 nada se o Colab desconectar, descomente a célula que monta o Google Drive.
 
 Para rodar localmente: `pip install -r requirements.txt jupyter`. Funciona em CUDA, na GPU do Mac (MPS) ou em CPU.
@@ -91,8 +94,8 @@ L_i = Σ_{j≠y_i} max(0, s_j − s_{y_i} + 1).
 
 ## Resultados
 
-Acurácias na melhor época de validação (`results/results.csv`). Como as variações 24–27 melhoraram a validação
-em relação à `cnn_augment`, a `cnn_best` combina todas elas.
+Acurácias na melhor época de validação (`results/results.csv`). A `cnn_best` combina as variações que
+melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep` e `cnn_ls`. A `cnn_wide` piorou e ficou de fora.
 
 | # | Experimento | Treino | Validação | Teste | Δ val vs. base |
 |---|---|---|---|---|---|
@@ -139,7 +142,7 @@ em relação à `cnn_augment`, a `cnn_best` combina todas elas.
 - **Ativações:** ReLU e Leaky ReLU empatam; tanh (75%) e sigmóide (82%) saturam e aprendem pior.
 - **Overfitting:** a `mlp_baseline` chega a 95% no treino e 86% na validação, e a `cnn`, a 99% no treino e
   95% na validação. Dropout sozinho reduz essa diferença mas perde acurácia (0,5 é forte demais); com BatchNorm,
-  recupera e tem a menor loss de validação entre as MLPs. Na CNN, data augmentation, weight decay e label
+  recupera a acurácia (a menor loss de validação entre as MLPs é a da `mlp_deep`). Na CNN, data augmentation, weight decay e label
   smoothing reduzem o overfitting e cada um melhora a validação.
 - **Custo:** a `cnn_wide` levou ~2,7 vezes o tempo da `cnn_augment` sem ganhar acurácia; treinar 30 épocas
   rendeu mais que alargar a rede.
