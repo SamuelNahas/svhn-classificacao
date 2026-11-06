@@ -347,7 +347,7 @@ python tests/check_smoke.py smoke
   | [#8](../../issues/8) | Atualizar este README | Em revisão (PR #9) |
   | [#5](../../issues/5) | Relatório em LaTeX | A fazer |
   | [#11](../../issues/11) | Validação do arquivo de predições | A fazer |
-  | [#17](../../issues/17) | Experimentos pt3: CNN mais profunda, cutout, TTA e ensemble | Em revisão (PR #20) |
+  | [#17](../../issues/17) | Experimentos pt3: CNN mais profunda, cutout, TTA e ensemble | Em revisão (PR #21) |
   | [#14](../../issues/14) | Ideias de experimentos futuros (fora do escopo) | Em revisão (PR #19) |
 
 - **Branches:** uma por issue (`<número>-<descrição>`), com PR que fecha a issue. Quando uma issue depende de outra
@@ -393,7 +393,7 @@ python tests/check_smoke.py smoke
   (`results/extras/`), sem mudar a tabela principal nem o modelo final.
 - `batches()` não gera mais um último lote de 1 imagem.
 
-### PR #20 — Experimentos pt3 (#17)
+### PR #21 — Experimentos pt3 (#17)
 - `cnn_deep` (3 convoluções por bloco) e `cnn_cutout` entram nas variações da CNN e na `cnn_best`, que sobe para
   96,68% de validação e vira o novo modelo final.
 - TTA e ensemble de 1 a 5 modelos, escolhidos pela validação: ensemble de 5 + TTA, com 97,63% no teste.
