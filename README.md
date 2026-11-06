@@ -36,7 +36,8 @@ dados do espelho oficial no Hugging Face (`ufldl-stanford/svhn`, em parquet), no
 
 Os experimentos já concluídos ficam salvos em `results/` e não são retreinados quando o notebook roda de novo:
 com o `results/` e o `weights/` deste repositório, o notebook inteiro roda em poucos minutos. No Colab, envie também
-essas duas pastas (ou rode `!git clone` do repositório e abra o notebook de lá); só com o notebook, tudo é retreinado.
+essas duas pastas (ou rode `!git clone https://github.com/SamuelNahas/svhn-classificacao` e `%cd svhn-classificacao` antes de
+executar o notebook, para ele achar essas pastas); só com o notebook, tudo é retreinado.
 Sem imagens em `data/adicional/`, a última célula pula as predições em vez de falhar. Para não perder
 nada se o Colab desconectar, descomente a célula que monta o Google Drive.
 
