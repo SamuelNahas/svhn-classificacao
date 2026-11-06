@@ -1,0 +1,27 @@
+{
+  "experimento": "cnn_best",
+  "arquitetura": "Sequential(\n  (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (2): ReLU()\n  (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (5): ReLU()\n  (6): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n  (7): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (8): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (9): ReLU()\n  (10): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (11): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (12): ReLU()\n  (13): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n  (14): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (15): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (16): ReLU()\n  (17): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (18): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, bias=True, track_running_stats=True)\n  (19): ReLU()\n  (20): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n  (21): Flatten(start_dim=1, end_dim=-1)\n  (22): Dropout(p=0.3, inplace=False)\n  (23): Linear(in_features=2048, out_features=256, bias=True)\n  (24): ReLU()\n  (25): Dropout(p=0.3, inplace=False)\n  (26): Linear(in_features=256, out_features=10, bias=True)\n)",
+  "config": {
+    "arch_args": {},
+    "batch": 64,
+    "epochs": 30,
+    "augment": true,
+    "weight_decay": 0.05,
+    "label_smoothing": 0.1,
+    "seed": 42,
+    "norm": "mean_std",
+    "gray": false,
+    "loss": "ce",
+    "l2": 0.0,
+    "optimizer": "adamw",
+    "momentum": 0.0,
+    "arch": "cnn",
+    "lr": 0.001,
+    "stop_epoch": 26
+  },
+  "parametros": 815018,
+  "val_acc": 0.9625938566552901,
+  "test_acc": 0.968500307314075,
+  "train_acc": 0.986854498546214,
+  "train_loss": 0.13097983063905155
+}
