@@ -1,0 +1,13 @@
+20:02:27 ep   1/60 | treino loss 0.4176 acc 0.8947 | val loss 0.4092 acc 0.8995 | 7.2s + aval 1.0s
+20:02:39 ep   2/60 | treino loss 0.2943 acc 0.9315 | val loss 0.2930 acc 0.9294 | 10.7s + aval 1.0s
+20:02:51 ep   3/60 | treino loss 0.2848 acc 0.9406 | val loss 0.2781 acc 0.9403 | 10.8s + aval 1.0s
+20:02:59 ep   4/60 | treino loss 0.2740 acc 0.9423 | val loss 0.2812 acc 0.9402 | 7.0s + aval 0.4s
+20:03:09 ep   5/60 | treino loss 0.2640 acc 0.9418 | val loss 0.2764 acc 0.9362 | 9.5s + aval 1.0s
+20:03:21 ep   6/60 | treino loss 0.2519 acc 0.9514 | val loss 0.2544 acc 0.9481 | 10.8s + aval 1.0s
+20:03:33 ep   7/60 | treino loss 0.2444 acc 0.9530 | val loss 0.2559 acc 0.9470 | 10.8s + aval 1.0s
+20:03:45 ep   8/60 | treino loss 0.2296 acc 0.9584 | val loss 0.2432 acc 0.9518 | 10.9s + aval 1.0s
+20:03:57 ep   9/60 | treino loss 0.2183 acc 0.9610 | val loss 0.2337 acc 0.9536 | 10.8s + aval 1.0s
+20:04:08 ep  10/60 | treino loss 0.2131 acc 0.9630 | val loss 0.2269 acc 0.9578 | 10.7s + aval 1.0s
+20:04:20 ep  11/60 | treino loss 0.2173 acc 0.9629 | val loss 0.2420 acc 0.9526 | 10.9s + aval 1.0s
+20:04:32 ep  12/60 | treino loss 0.2059 acc 0.9640 | val loss 0.2256 acc 0.9544 | 10.8s + aval 1.0s
+20:04:44 ep  13/60 | treino loss 0.2094 acc 0.9652 | val loss 0.2339 acc 0.9563 | 10.7s + aval 1.0s

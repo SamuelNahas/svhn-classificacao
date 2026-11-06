@@ -410,3 +410,5 @@ python tests/check_smoke.py smoke
 
 1. Escrever o relatório com os números deste README e de `results/` (#5).
 2. Validar o formato do `RESULTS.txt` com um script próprio e no CI (#11).
+3. Experimentos pt4 nas DGX Spark (#20), em andamento: estado, resultados parciais e pendências em
+   [`dgx/README.md`](dgx/README.md).

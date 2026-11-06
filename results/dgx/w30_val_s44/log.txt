@@ -1,0 +1,5 @@
+20:03:05 ep   1/30 | treino loss 0.3538 acc 0.9069 | val loss 0.3378 acc 0.9139 | 39.0s + aval 6.5s
+20:03:40 ep   2/30 | treino loss 0.3198 acc 0.9234 | val loss 0.3153 acc 0.9279 | 31.9s + aval 2.5s
+20:04:14 ep   3/30 | treino loss 0.2731 acc 0.9379 | val loss 0.2751 acc 0.9357 | 31.8s + aval 2.5s
+20:04:48 ep   4/30 | treino loss 0.2539 acc 0.9425 | val loss 0.2544 acc 0.9399 | 31.8s + aval 2.5s
+20:05:16 ep   5/30 | treino loss 0.2414 acc 0.9496 | val loss 0.2515 acc 0.9454 | 25.7s + aval 1.8s
