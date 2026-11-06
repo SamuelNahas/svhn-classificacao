@@ -10,6 +10,7 @@ from pathlib import Path
 
 N_EXPERIMENTS = 28  # fixo de propósito: mudar os experimentos do notebook exige atualizar aqui
 N_SPLITS_SMOKE = 2  # divisões do random subsampling no modo de teste
+N_EXTRAS = 7  # #14: cnn_sem_bn, 3 inicializações da MLP e 3 tamanhos de treino
 
 
 def check(root):
@@ -73,14 +74,33 @@ def check_outputs(root):
             if not 0 <= float(r[k]) <= 1:
                 errors.append(f"dígito {r['digito']}: {k} = {r[k]} fora de [0, 1]")
 
+    names = {r["modificacao"] for r in rows}
     final = json.loads((results / "final.json").read_text())
-    if final["experimento"] not in {r["modificacao"] for r in rows}:
+    if final["experimento"] not in names:
         errors.append(f"final.json aponta para um experimento inexistente: {final['experimento']}")
     for k in ("val_acc", "test_acc", "train_acc"):
         if not 0 <= final[k] <= 1:
             errors.append(f"final.json: {k} = {final[k]} fora de [0, 1]")
     if not (root / "weights" / "best.pt").exists():
         errors.append("weights/best.pt não foi salvo")
+
+    with open(results / "extras.csv") as f:
+        extras = list(csv.DictReader(f))
+    if len(extras) != N_EXTRAS:
+        errors.append(f"extras.csv tem {len(extras)} experimentos, esperado {N_EXTRAS}")
+    for r in extras:
+        if r["base"] not in names:
+            errors.append(f"extra {r['experimento']}: base {r['base']} não está em results.csv")
+        if r["experimento"].endswith("pct") and r["base"] != final["experimento"]:
+            errors.append(f"extra {r['experimento']}: curva de aprendizado deveria ter base {final['experimento']}")
+        if not math.isfinite(float(r["delta_val"])):
+            errors.append(f"extra {r['experimento']}: delta_val não é finito")
+        for k in ("train_acc", "val_acc", "test_acc"):
+            if not 0 <= float(r[k]) <= 1:
+                errors.append(f"extra {r['experimento']}: {k} = {r[k]} fora de [0, 1]")
+    for f in ("extras_sem_bn.png", "extras_inicializacao.png", "extras_curva_aprendizado.png"):
+        if not (results / f).exists():
+            errors.append(f"{f} não foi gerada")
 
     n_images = len(list((root / "adicional").glob("*.png")))
     lines = (root / "SAMUEL_WILKER_BERNARDO_RESULTS.txt").read_text().split("\n")

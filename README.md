@@ -206,6 +206,47 @@ O conjunto tem 203.856 imagens PNG 32×32, sem rótulos, e as classes previstas 
 19.993 e 21.642 imagens por dígito). Sem rótulos não há acurácia; pela confiança do modelo, comparada com a do
 teste, a estimativa é de ~97%.
 
+## Experimentos extras (#14)
+
+Ideias fora do escopo da entrega, registradas na #14. Elas ficam numa seção própria do notebook, com cache em
+`results/extras/` e tabela em `results/extras.csv`, e **não entram** na tabela principal, no random subsampling
+nem na escolha do modelo final. Cada uma é comparada com a sua base; rodar as 7 levou ~14 min no M5.
+
+| Extra | Base | Treino | Validação | Teste | Δ val vs. base |
+|---|---|---|---|---|---|
+| `cnn_sem_bn` | `cnn` | 98,92% | 94,33% | 94,71% | −1,00 |
+| `mlp_init_xavier` | `mlp_baseline` | 94,23% | 85,77% | 82,96% | −0,48 |
+| `mlp_init_kaiming_normal` | `mlp_baseline` | 93,78% | 85,35% | 82,30% | −0,90 |
+| `mlp_init_normal_0.01` | `mlp_baseline` | 94,15% | 85,86% | 83,28% | −0,40 |
+| `cnn_best_10pct` | `cnn_best` | 99,14% | 93,24% | 93,28% | −3,02 |
+| `cnn_best_25pct` | `cnn_best` | 98,60% | 94,73% | 95,24% | −1,53 |
+| `cnn_best_50pct` | `cnn_best` | 98,88% | 95,66% | 96,19% | −0,60 |
+
+- **CNN sem BatchNorm:** a loss de treino cai no mesmo ritmo (até um pouco mais baixa no fim), mas a validação
+  estaciona em ~94,3% contra 95,3% com BN. Aqui o BN ajuda mais na generalização do que na velocidade de
+  convergência: sem ele, a diferença entre treino e validação sobe de 3,9 para 4,6 pontos.
+
+  ![CNN sem BatchNorm](results/extras_sem_bn.png)
+
+- **Inicialização dos pesos (MLP 512-256):** cada variação reinicializa os pesos de todas as camadas lineares
+  (inclusive a de saída) e zera os bias; o padrão do PyTorch usa bias uniformes. Na inicialização, o desvio das ativações muda muito. Xavier e Kaiming
+  normal mantêm o sinal (0,78 → 0,64 e 0,84 → 0,78 nas duas camadas ocultas), o padrão do PyTorch o reduz
+  (0,34 → 0,14) e N(0; 0,01) quase o apaga na segunda camada (0,33 → 0,05). Nenhuma unidade nasce morta (0% de
+  ReLUs que não ativam para nenhuma imagem do lote). Mesmo assim, depois de 15 épocas as quatro ficam a menos de
+  1 ponto entre si: com só duas camadas ocultas e o Adam, que ajusta o passo de cada peso, a escala inicial pesa
+  pouco. O efeito deve aparecer em redes mais profundas ou com SGD.
+
+  ![Inicialização](results/extras_inicializacao.png)
+
+- **Curva de aprendizado da `cnn_best`:** a validação sobe de 93,2% (10% do treino) para 94,7% (25%), 95,7%
+  (50%) e 96,3% (100%), enquanto o treino fica entre 98,6% e 99,1% em todos. Os ganhos de cada passo diminuem
+  (+1,5 de 10% para 25%, +0,9 de 25% para 50% e +0,6 de 50% para 100%), mas ainda não zeraram: mais dados
+  provavelmente ainda ajudariam. Ressalva: todas as frações treinam as mesmas 30 épocas, então a de 10% faz 10
+  vezes menos passos de otimização; parte da queda pode vir disso, e não só de ter menos dados. A diferença entre treino e
+  validação diminui de 5,9 para 2,4 pontos.
+
+  ![Curva de aprendizado](results/extras_curva_aprendizado.png)
+
 ## Decisões de implementação
 
 - **Dados na GPU:** o dataset inteiro (~300 MB em `uint8`) vai para a GPU e os batches são montados lá, sem
@@ -237,7 +278,7 @@ variável, o notebook roda normalmente.
 O GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) executa o notebook inteiro nesse modo
 em cada PR e em cada push na `main` (exceto quando só mudam arquivos `.md`), e [`tests/check_smoke.py`](tests/check_smoke.py) confere as saídas:
 28 experimentos, acurácias entre 0 e 1, losses positivas, curvas, `final.json`, pesos salvos, kNN,
-random subsampling, análise de erros e o arquivo de predições (uma linha por imagem, só dígitos). O notebook
+random subsampling, análise de erros, os 7 experimentos extras e o arquivo de predições (uma linha por imagem, só dígitos). O notebook
 executado fica disponível como artefato do job.
 
 Para rodar localmente (cerca de 1 min):
@@ -304,6 +345,11 @@ python tests/check_smoke.py smoke
 
 ### PR #9 — README (#8)
 - Estrutura do repositório, resultados com análise, decisões de implementação, organização do trabalho e este histórico.
+
+### PR #19 — Experimentos extras (#14)
+- CNN sem BatchNorm, inicialização dos pesos da MLP e curva de aprendizado do modelo final, em seção própria
+  (`results/extras/`), sem mudar a tabela principal nem o modelo final.
+- `batches()` não gera mais um último lote de 1 imagem.
 
 ## Entregáveis
 
