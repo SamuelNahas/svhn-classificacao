@@ -346,6 +346,11 @@ python tests/check_smoke.py smoke
 ### PR #9 — README (#8)
 - Estrutura do repositório, resultados com análise, decisões de implementação, organização do trabalho e este histórico.
 
+### PR #19 — Experimentos extras (#14)
+- CNN sem BatchNorm, inicialização dos pesos da MLP e curva de aprendizado do modelo final, em seção própria
+  (`results/extras/`), sem mudar a tabela principal nem o modelo final.
+- `batches()` não gera mais um último lote de 1 imagem.
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
