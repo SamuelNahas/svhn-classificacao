@@ -1,0 +1,6 @@
+{
+  "metodo": "ensemble de 5 + TTA",
+  "n_modelos": 5,
+  "tta": true,
+  "test_acc": 0.9763368368148804
+}
