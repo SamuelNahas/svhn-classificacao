@@ -2,8 +2,10 @@ name: CI
 
 on:
   pull_request:
+    paths-ignore: ["**.md"]  # PR só de documentação não roda o notebook
   push:
     branches: [main]
+    paths-ignore: ["**.md"]
 
 jobs:
   smoke:
