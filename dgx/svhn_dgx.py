@@ -338,7 +338,7 @@ def run_config(cfg_path, runs):
     if (run_dir / "summary.json").exists():
         return
     torch.backends.cudnn.benchmark = True
-    torch.backends.cudnn.enabled = os.environ.get("NO_CUDNN") != "1"  # a imagem vLLM não tem o cuDNN de treino
+    torch.backends.cudnn.enabled = os.environ.get("NO_CUDNN") != "1"  # imagem sem o cuDNN de treino: NO_CUDNN=1
     train(cfg, run_dir)
 
 

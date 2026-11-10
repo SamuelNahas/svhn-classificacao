@@ -1,0 +1,30 @@
+1 & \texttt{linear} & classificador linear 3072$\to$10, softmax & 2,081 & 2,134 & 30,97 & 30,29 & 25,30 &  \\
+2 & \texttt{linear\_svm} & loss SVM multiclasse & 2,101 & 2,153 & 28,33 & 27,58 & 23,64 & $-$2,72 (1) piorou \\
+3 & \texttt{mlp\_baseline} & MLP 512-256, ReLU, Adam lr $10^{-3}$ & 0,179 & 0,560 & 95,08 & 86,25 & 82,88 &  \\
+4 & \texttt{mlp\_lr\_1e-4} & lr $10^{-4}$ & 0,325 & 0,490 & 91,21 & 86,62 & 84,27 & +0,37 (3) melhorou \\
+5 & \texttt{mlp\_lr\_1e-2} & lr $10^{-2}$ & 2,238 & 2,225 & 18,83 & 19,70 & 19,59 & $-$66,55 (3) piorou \\
+6 & \texttt{mlp\_batch\_32} & batch 32 & 0,220 & 0,557 & 93,52 & 85,76 & 82,73 & $-$0,49 (3) piorou \\
+7 & \texttt{mlp\_batch\_256} & batch 256 & 0,195 & 0,520 & 94,95 & 86,59 & 83,87 & +0,34 (3) melhorou \\
+8 & \texttt{mlp\_sgd} & SGD (lr $10^{-2}$) & 0,456 & 0,554 & 87,27 & 84,66 & 82,33 & +64,96 (5) melhorou \\
+9 & \texttt{mlp\_sgd\_momentum} & + momentum 0,9 & 0,166 & 0,510 & 95,66 & 86,88 & 84,24 & +2,23 (8) melhorou \\
+10 & \texttt{mlp\_100} & 1 camada oculta de 100 & 0,366 & 0,518 & 89,83 & 85,84 & 83,77 & $-$0,41 (3) piorou \\
+11 & \texttt{mlp\_leaky\_relu} & Leaky ReLU & 0,165 & 0,530 & 95,78 & 86,80 & 84,12 & +0,55 (3) melhorou \\
+12 & \texttt{mlp\_tanh} & tanh & 0,545 & 0,801 & 83,61 & 75,41 & 72,23 & $-$10,84 (3) piorou \\
+13 & \texttt{mlp\_sigmoid} & sigmóide & 0,387 & 0,597 & 88,56 & 81,69 & 79,09 & $-$4,56 (3) piorou \\
+14 & \texttt{mlp\_sem\_norm} & sem normalização (só /255) & 1,486 & 1,507 & 50,42 & 49,76 & 46,74 & $-$36,49 (3) piorou \\
+15 & \texttt{mlp\_so\_media} & só subtrai a média & 0,169 & 0,528 & 95,55 & 86,10 & 83,85 & $-$0,15 (3) piorou \\
+16 & \texttt{mlp\_cinza} & tons de cinza & 0,175 & 0,529 & 95,19 & 86,66 & 83,65 & +0,41 (3) melhorou \\
+17 & \texttt{mlp\_l2} & L2, $\lambda=10^{-4}$ & 0,258 & 0,499 & 92,86 & 86,31 & 83,64 & +0,05 (3) melhorou \\
+18 & \texttt{mlp\_dropout} & Dropout 0,3 & 0,418 & 0,530 & 87,38 & 84,60 & 81,61 & $-$1,65 (3) piorou \\
+19 & \texttt{mlp\_dropout\_0.5} & Dropout 0,5 & 0,597 & 0,657 & 81,86 & 80,26 & 76,79 & $-$4,34 (18) piorou \\
+20 & \texttt{mlp\_bn\_dropout} & + BatchNorm & 0,352 & 0,449 & 89,77 & 86,46 & 84,31 & +1,86 (18) melhorou \\
+21 & \texttt{mlp\_deep} & camadas 1024-512-256 & 0,324 & 0,439 & 90,15 & 86,78 & 84,17 & +0,33 (20) melhorou \\
+22 & \texttt{cnn} & CNN 3 blocos 32/64/128 & 0,035 & 0,204 & 99,24 & 95,33 & 95,21 &  \\
+23 & \texttt{cnn\_augment} & + data augmentation & 0,112 & 0,167 & 97,27 & 95,59 & 96,05 & +0,26 (22) melhorou \\
+24 & \texttt{cnn\_wide} & filtros 64/128/256 & 0,117 & 0,175 & 97,36 & 95,48 & 96,12 & $-$0,11 (23) piorou \\
+25 & \texttt{cnn\_wd} & weight decay 0,05 & 0,105 & 0,153 & 97,46 & 95,93 & 96,22 & +0,34 (23) melhorou \\
+26 & \texttt{cnn\_30ep} & 30 épocas & 0,060 & 0,161 & 98,54 & 96,01 & 96,37 & +0,42 (23) melhorou \\
+27 & \texttt{cnn\_ls} & label smoothing 0,1 & 0,192 & 0,230 & 97,31 & 95,81 & 96,51 & +0,22 (23) melhorou \\
+28 & \texttt{cnn\_deep} & 3 convoluções por bloco & 0,089 & 0,153 & 97,88 & 96,03 & 96,37 & +0,44 (23) melhorou \\
+29 & \texttt{cnn\_cutout} & cutout 8×8 & 0,128 & 0,163 & 96,87 & 95,82 & 96,00 & +0,23 (23) melhorou \\
+30 & \texttt{cnn\_best} & augment + as 5 mudanças que ajudaram & 0,135 & 0,198 & 98,78 & 96,68 & 97,05 & +1,09 (23) melhorou \\

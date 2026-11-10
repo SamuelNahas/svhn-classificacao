@@ -1,6 +1,6 @@
 {
-  "metodo": "ensemble de 5 + TTA",
-  "n_modelos": 5,
+  "metodo": "pt4: ensemble de 20 CNNs de 60 \u00e9pocas + TTA shift12",
+  "n_modelos": 20,
   "tta": true,
-  "test_acc": 0.9763368368148804
+  "test_acc": 0.9789490103721619
 }

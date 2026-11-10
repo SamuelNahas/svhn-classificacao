@@ -24,6 +24,7 @@ com **97,52% de acurácia de validação e 97,89% de teste**. O ensemble anterio
 | [`dgx/`](dgx/README.md) | Bateria pt4 nas DGX Spark: código, plano registrado, pesquisa bibliográfica e resultados |
 | `results/dgx/` | Um diretório por treino da pt4, as curvas de ensemble e a solução final (`final/`) |
 | `SAMUEL_WILKER_BERNARDO_RESULTS.txt` | Predições do conjunto adicional, uma por linha |
+| [`relatorio/`](relatorio/) | Relatório em LaTeX (`relatorio.tex`), o PDF compilado e `gerar.py`, que gera as tabelas e figuras a partir de `results/` |
 | [`tests/check_smoke.py`](tests/check_smoke.py) | Confere as saídas do modo de teste |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI: roda o notebook em modo de teste em cada PR |
 | `data/` | SVHN baixado e `data/adicional/` com as imagens do professor (ignorado pelo git) |
@@ -180,8 +181,8 @@ melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep`, `c
   | `cnn_30ep` | 95,78% ± 0,14 | 96,35% ± 0,07 |
 
 - **Análise de erros do modelo final** (Lecture 11): matriz de confusão no teste, precisão/recall/F1 por dígito e
-  exemplos de erros, feitos com o método das predições (ensemble de 5 + TTA). **Resultado:** F1 entre 0,968
-  (dígito 9) e 0,983 (dígito 4); as confusões mais comuns são 7 → 1 (45 imagens), 3 → 9 (34) e 5 → 3 (21).
+  exemplos de erros, feitos com o método das predições (o ensemble de 20 da pt4 + TTA shift12). **Resultado:** F1
+  entre 0,971 (dígito 9) e 0,986 (dígito 2); as confusões mais comuns são 7 → 1 (40 imagens), 3 → 9 (32) e 4 → 1 (21).
 
   ![Matriz de confusão](results/confusao.png)
 
@@ -368,7 +369,7 @@ python tests/check_smoke.py smoke
   | [#13](../../issues/13) | Experimentos e avaliações pt2 + resultados | Em revisão (PR #15) |
   | [#4](../../issues/4) | Predições do conjunto adicional | Em revisão (PR #16) |
   | [#8](../../issues/8) | Atualizar este README | Em revisão (PR #9) |
-  | [#5](../../issues/5) | Relatório em LaTeX | A fazer |
+  | [#5](../../issues/5) | Relatório em LaTeX | Concluída |
   | [#11](../../issues/11) | Validação do arquivo de predições | A fazer |
   | [#17](../../issues/17) | Experimentos pt3: CNN mais profunda, cutout, TTA e ensemble | Em revisão (PR #21) |
   | [#14](../../issues/14) | Ideias de experimentos futuros (fora do escopo) | Em revisão (PR #19) |
@@ -428,16 +429,20 @@ python tests/check_smoke.py smoke
 - Nova solução: ensemble de 20 CNNs de 60 épocas + TTA shift12, com 97,52% de validação e 97,89% de teste.
 - `SAMUEL_WILKER_BERNARDO_RESULTS.txt`, `weights/pt4/` e a seção "Solução final pt4" do notebook.
 
+### PR #26 — Relatório (#5)
+- `relatorio/relatorio.pdf`, com as seções 9.1 a 9.5 do enunciado. As tabelas e os números citados no texto são
+  gerados por `relatorio/gerar.py` a partir de `results/`, sem digitação manual.
+- `SAMUEL_WILKER_BERNARDO_RESULTS.txt` regerado pelo notebook com a solução pt4: difere em 15 das 203.856 linhas
+  do arquivo gerado antes pelo script em bf16.
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
 - [x] Pesos: `weights/best.pt` e, para a solução final pt4, `weights/pt4/`
 - [x] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
-- [ ] Relatório em PDF (#5)
+- [x] Relatório em PDF: [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf)
 
 ## Próximos passos
 
-1. Escrever o relatório com os números deste README e de `results/` (#5).
-2. Validar o formato do `RESULTS.txt` com um script próprio e no CI (#11).
-3. Experimentos futuros na #22: a receita completa do RandAugment (WRN-28-2, 200 épocas) e um teste curto de
+1. Experimentos futuros na #22: a receita completa do RandAugment (WRN-28-2, 200 épocas) e um teste curto de
    mais épocas (100 e 200) na CNN.
