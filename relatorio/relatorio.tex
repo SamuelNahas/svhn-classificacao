@@ -103,8 +103,8 @@ por vez, e o plano e a regra de decisão de cada rodada foram registrados no rep
 A Tabela~\ref{tab:evol} segue o formato pedido: cada linha parte da anterior e diz o que foi alterado, o
 resultado e se houve melhora ou piora em relação ao modelo anterior. A Tabela~\ref{tab:outros} traz os demais
 experimentos, agrupados por família, cada um comparado ao modelo de que deriva. Todas as acurácias são da melhor
-época de validação, e a escolha sempre foi feita pela validação. As losses e as acurácias de treino estão na
-Tabela~\ref{tab:treino} (Seção~\ref{sec:curvas}) e, para todos os experimentos, no Apêndice~\ref{ap:completa}.
+época de validação, e a escolha sempre foi feita pela validação. A Tabela~\ref{tab:outros} também traz a loss e a acurácia de treino de cada
+experimento; as dos modelos da Tabela~\ref{tab:evol} estão na Tabela~\ref{tab:treino} (Seção~\ref{sec:curvas}).
 
 \begin{table}[h]
 \centering\small
@@ -127,15 +127,18 @@ softmax de modelos iguais com sementes diferentes.
 \end{table}
 
 {\small
-\setlength{\tabcolsep}{4pt}
-\begin{longtable}{>{\raggedright}p{9.6cm}rr>{\raggedright\arraybackslash}p{3.1cm}}
-\caption{Demais experimentos. Cada linha muda uma coisa em relação à base indicada. Acurácias em \%.}\label{tab:outros}\\
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright}p{6.9cm}rrrrr>{\raggedright\arraybackslash}p{2.9cm}}
+\caption{Demais experimentos. Cada linha muda uma coisa em relação à base indicada. Loss: entropia cruzada.
+Acurácias em \%. Ensembles não têm métricas de treino (---).}\label{tab:outros}\\
 \toprule
-Modificação & Validação & Teste & Em relação à base \\
+ & \multicolumn{2}{c}{Loss} & \multicolumn{3}{c}{Acurácia} & \\
+Modificação & treino & val. & treino & val. & teste & Em relação à base \\
 \midrule
 \endfirsthead
 \toprule
-Modificação & Validação & Teste & Em relação à base \\
+ & \multicolumn{2}{c}{Loss} & \multicolumn{3}{c}{Acurácia} & \\
+Modificação & treino & val. & treino & val. & teste & Em relação à base \\
 \midrule
 \endhead
 \bottomrule
@@ -145,8 +148,9 @@ Modificação & Validação & Teste & Em relação à base \\
 }
 \vspace{-0.8em}
 {\footnotesize
-$^b$ Treinos em lote: a acurácia de teste foi calculada durante os treinos, mas só foi lida depois de a solução
-final estar fechada, e não influenciou nenhuma escolha. \quad
+$^b$ Treinos em lote: a loss e a acurácia de treino são medidas numa amostra fixa de 7.325 imagens do treino, e
+a acurácia de teste foi calculada durante os treinos, mas só foi lida depois de a solução final estar fechada,
+sem influenciar nenhuma escolha. \quad
 $^c$ TTA $\pm2$\,px: a imagem e 4 cópias deslocadas 2 pixels; shift12: a imagem e 8 cópias deslocadas 1 e 2
 pixels. Com shift12, o teste só foi calculado para a solução final (---).
 \par}
@@ -301,54 +305,6 @@ que exigiu repetir as melhores mudanças com mais sementes e registrar as regras
 resultados; e diferenças pequenas de predição entre a GPU e o CPU, que tornaram necessário gerar as predições
 finais sempre pelo mesmo código.
 
-
-\clearpage
-\appendix
-\section{Tabela completa}\label{ap:completa}
-
-Todos os experimentos com as métricas mínimas do enunciado: loss e acurácia de treino e de validação, e acurácia
-de teste. A última coluna compara a validação com a linha indicada entre parênteses.
-
-{\scriptsize
-\setlength{\tabcolsep}{3pt}
-\begin{longtable}{r>{\raggedright}p{2.6cm}>{\raggedright}p{4.4cm}rrrrr>{\raggedright\arraybackslash}p{3.1cm}}
-\caption{Todos os experimentos. Loss: entropia cruzada. Acurácias em \%. $\Delta$: diferença de acurácia de validação, em
-pontos, em relação à linha indicada entre parênteses.}\label{tab:exp}\\
-\toprule
-\# & Experimento & Modificação & \multicolumn{2}{c}{Loss} & \multicolumn{3}{c}{Acurácia} & $\Delta$ val (base) \\
- & & & treino & val. & treino & val. & teste & \\
-\midrule
-\endfirsthead
-\toprule
-\# & Experimento & Modificação & \multicolumn{2}{c}{Loss} & \multicolumn{3}{c}{Acurácia} & $\Delta$ val (base) \\
- & & & treino & val. & treino & val. & teste & \\
-\midrule
-\endhead
-\bottomrule
-\endfoot
-\multicolumn{9}{l}{\textit{Notebook: linear, MLP e CNN (15 épocas, salvo indicação)}}\\
-\linhas{tabelas/notebook.tex}
-\midrule
-\multicolumn{9}{l}{\textit{Triagem em lote: uma mudança por vez sobre a \texttt{cnn\_best} (semente 42, 30 épocas, salvo indicação)$^{a,b}$}}\\
-\linhas{tabelas/triagem.tex}
-\midrule
-\multicolumn{9}{l}{\textit{Confirmação com várias sementes$^{a,b}$}}\\
-\linhas{tabelas/confirmacao.tex}
-\midrule
-\multicolumn{9}{l}{\textit{TTA e ensembles (média simples do softmax; membros em ordem fixa de sementes)$^{b,c}$}}\\
-\linhas{tabelas/ensembles.tex}
-\end{longtable}
-}
-\vspace{-0.6em}
-{\footnotesize
-$^a$ Nos treinos em lote, a loss e a acurácia de treino são medidas numa amostra fixa de 7.325 imagens do
-treino, para economizar tempo; a validação é sempre completa. \quad
-$^b$ A acurácia de teste das linhas 31 em diante foi calculada durante os treinos, mas só foi lida depois de a
-solução final estar fechada. Ela não influenciou nenhuma escolha. \quad
-$^c$ Ensembles não têm métricas de treino (---). O teste das linhas com TTA shift12 só foi calculado para a
-solução final; o das outras linhas de ensemble de 60 épocas é sem TTA. TTA $\pm2$\,px: a imagem e 4 cópias
-deslocadas 2 pixels; shift12: a imagem e 8 cópias deslocadas 1 e 2 pixels.
-\par}
 
 
 \end{document}

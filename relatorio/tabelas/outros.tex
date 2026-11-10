@@ -1,56 +1,56 @@
-\multicolumn{4}{l}{\textit{MLP (base: \texttt{mlp\_baseline}, salvo indicação)}}\\
-lr $10^{-4}$ & 86,62 & 84,27 & melhorou (+0,37) \\
-lr $10^{-2}$ & 19,70 & 19,59 & piorou ($-$66,55) \\
-batch 32 & 85,76 & 82,73 & piorou ($-$0,49) \\
-batch 256 & 86,59 & 83,87 & melhorou (+0,34) \\
-SGD sem momentum, lr $10^{-2}$ (base: Adam com a mesma lr) & 84,66 & 82,33 & melhorou (+64,96) \\
-uma camada oculta de 100 & 85,84 & 83,77 & piorou ($-$0,41) \\
-camadas 1024-512-256 (base: BatchNorm + Dropout) & 86,78 & 84,17 & melhorou (+0,33) \\
-Leaky ReLU & 86,80 & 84,12 & melhorou (+0,55) \\
-tanh & 75,41 & 72,23 & piorou ($-$10,84) \\
-sigmóide & 81,69 & 79,09 & piorou ($-$4,56) \\
-sem normalização (só /255) & 49,76 & 46,74 & piorou ($-$36,49) \\
-só subtrai a média & 86,10 & 83,85 & piorou ($-$0,15) \\
-tons de cinza & 86,66 & 83,65 & melhorou (+0,41) \\
-regularização L2, $\lambda=10^{-4}$ & 86,31 & 83,64 & melhorou (+0,05) \\
-Dropout 0,3 & 84,60 & 81,61 & piorou ($-$1,65) \\
-Dropout 0,5 (base: Dropout 0,3) & 80,26 & 76,79 & piorou ($-$4,34) \\
-BatchNorm + Dropout 0,3 (base: Dropout 0,3) & 86,46 & 84,31 & melhorou (+1,86) \\
-classificador linear com loss SVM (base: linear) & 27,58 & 23,64 & piorou ($-$2,72) \\
+\multicolumn{7}{l}{\textit{MLP (base: \texttt{mlp\_baseline}, salvo indicação)}}\\
+lr $10^{-4}$ & 0,325 & 0,490 & 91,21 & 86,62 & 84,27 & melhorou (+0,37) \\
+lr $10^{-2}$ & 2,238 & 2,225 & 18,83 & 19,70 & 19,59 & piorou ($-$66,55) \\
+batch 32 & 0,220 & 0,557 & 93,52 & 85,76 & 82,73 & piorou ($-$0,49) \\
+batch 256 & 0,195 & 0,520 & 94,95 & 86,59 & 83,87 & melhorou (+0,34) \\
+SGD sem momentum, lr $10^{-2}$ (base: Adam com a mesma lr) & 0,456 & 0,554 & 87,27 & 84,66 & 82,33 & melhorou (+64,96) \\
+uma camada oculta de 100 & 0,366 & 0,518 & 89,83 & 85,84 & 83,77 & piorou ($-$0,41) \\
+camadas 1024-512-256 (base: BatchNorm + Dropout) & 0,324 & 0,439 & 90,15 & 86,78 & 84,17 & melhorou (+0,33) \\
+Leaky ReLU & 0,165 & 0,530 & 95,78 & 86,80 & 84,12 & melhorou (+0,55) \\
+tanh & 0,545 & 0,801 & 83,61 & 75,41 & 72,23 & piorou ($-$10,84) \\
+sigmóide & 0,387 & 0,597 & 88,56 & 81,69 & 79,09 & piorou ($-$4,56) \\
+sem normalização (só /255) & 1,486 & 1,507 & 50,42 & 49,76 & 46,74 & piorou ($-$36,49) \\
+só subtrai a média & 0,169 & 0,528 & 95,55 & 86,10 & 83,85 & piorou ($-$0,15) \\
+tons de cinza & 0,175 & 0,529 & 95,19 & 86,66 & 83,65 & melhorou (+0,41) \\
+regularização L2, $\lambda=10^{-4}$ & 0,258 & 0,499 & 92,86 & 86,31 & 83,64 & melhorou (+0,05) \\
+Dropout 0,3 & 0,418 & 0,530 & 87,38 & 84,60 & 81,61 & piorou ($-$1,65) \\
+Dropout 0,5 (base: Dropout 0,3) & 0,597 & 0,657 & 81,86 & 80,26 & 76,79 & piorou ($-$4,34) \\
+BatchNorm + Dropout 0,3 (base: Dropout 0,3) & 0,352 & 0,449 & 89,77 & 86,46 & 84,31 & melhorou (+1,86) \\
+classificador linear com loss SVM (base: linear) & 2,101 & 2,153 & 28,33 & 27,58 & 23,64 & piorou ($-$2,72) \\
 \midrule
-\multicolumn{4}{l}{\textit{CNN (base: \texttt{cnn\_augment}); as que melhoraram formam a \texttt{cnn\_best}}}\\
-filtros 64/128/256 & 95,48 & 96,12 & piorou ($-$0,11) \\
-weight decay 0,05 & 95,93 & 96,22 & melhorou (+0,34) \\
-30 épocas & 96,01 & 96,37 & melhorou (+0,42) \\
-label smoothing 0,1 & 95,81 & 96,51 & melhorou (+0,22) \\
-3 convoluções por bloco & 96,03 & 96,37 & melhorou (+0,44) \\
-cutout 8×8 & 95,82 & 96,00 & melhorou (+0,23) \\
+\multicolumn{7}{l}{\textit{CNN (base: \texttt{cnn\_augment}); as que melhoraram formam a \texttt{cnn\_best}}}\\
+filtros 64/128/256 & 0,117 & 0,175 & 97,36 & 95,48 & 96,12 & piorou ($-$0,11) \\
+weight decay 0,05 & 0,105 & 0,153 & 97,46 & 95,93 & 96,22 & melhorou (+0,34) \\
+30 épocas & 0,060 & 0,161 & 98,54 & 96,01 & 96,37 & melhorou (+0,42) \\
+label smoothing 0,1 & 0,192 & 0,230 & 97,31 & 95,81 & 96,51 & melhorou (+0,22) \\
+3 convoluções por bloco & 0,089 & 0,153 & 97,88 & 96,03 & 96,37 & melhorou (+0,44) \\
+cutout 8×8 & 0,128 & 0,163 & 96,87 & 95,82 & 96,00 & melhorou (+0,23) \\
 \midrule
-\multicolumn{4}{l}{\textit{Sobre a \texttt{cnn\_best} (base: \texttt{t01\_ref\_bf16}, a \texttt{cnn\_best} no script em lote)$^{b}$}}\\
-60 épocas & 96,66 & 97,16 & igual (+0,00) \\
-média móvel dos pesos (EMA) & 96,68 & 97,12 & melhorou (+0,03) \\
-brilho/contraste ±20\% & 96,83 & 97,09 & melhorou (+0,18) \\
-augment geométrico ×0,5 & 96,60 & 96,89 & piorou ($-$0,05) \\
-augment geométrico ×1,5 & 96,42 & 96,88 & piorou ($-$0,23) \\
-cutout 12×12 & 96,79 & 97,24 & melhorou (+0,14) \\
-cutout em metade das imagens & 96,59 & 96,98 & piorou ($-$0,07) \\
-ResNet pequena (WRN-22-1) & 96,63 & 97,27 & piorou ($-$0,03) \\
-Wide ResNet 16-4 & 97,08 & 97,46 & melhorou (+0,42) \\
-WRN-16-4 com SGD (base: WRN-16-4) & 97,01 & 97,51 & piorou ($-$0,07) \\
-WRN-16-8 (base: WRN-16-4) & 96,91 & 97,43 & piorou ($-$0,16) \\
-WRN-28-4 (base: WRN-16-4) & 96,86 & 97,51 & piorou ($-$0,22) \\
+\multicolumn{7}{l}{\textit{Sobre a \texttt{cnn\_best} (base: \texttt{t01\_ref\_bf16}, a \texttt{cnn\_best} no script em lote)$^{b}$}}\\
+60 épocas & 0,114 & 0,195 & 99,10 & 96,66 & 97,16 & igual (+0,00) \\
+média móvel dos pesos (EMA) & 0,159 & 0,198 & 98,02 & 96,68 & 97,12 & melhorou (+0,03) \\
+brilho/contraste ±20\% & 0,130 & 0,193 & 98,88 & 96,83 & 97,09 & melhorou (+0,18) \\
+augment geométrico ×0,5 & 0,104 & 0,196 & 99,40 & 96,60 & 96,89 & piorou ($-$0,05) \\
+augment geométrico ×1,5 & 0,170 & 0,211 & 97,79 & 96,42 & 96,88 & piorou ($-$0,23) \\
+cutout 12×12 & 0,144 & 0,189 & 98,44 & 96,79 & 97,24 & melhorou (+0,14) \\
+cutout em metade das imagens & 0,119 & 0,196 & 99,13 & 96,59 & 96,98 & piorou ($-$0,07) \\
+ResNet pequena (WRN-22-1) & 0,142 & 0,197 & 98,57 & 96,63 & 97,27 & piorou ($-$0,03) \\
+Wide ResNet 16-4 & 0,127 & 0,198 & 99,21 & 97,08 & 97,46 & melhorou (+0,42) \\
+WRN-16-4 com SGD (base: WRN-16-4) & 0,150 & 0,188 & 98,35 & 97,01 & 97,51 & piorou ($-$0,07) \\
+WRN-16-8 (base: WRN-16-4) & 0,116 & 0,199 & 99,52 & 96,91 & 97,43 & piorou ($-$0,16) \\
+WRN-28-4 (base: WRN-16-4) & 0,123 & 0,188 & 99,13 & 96,86 & 97,51 & piorou ($-$0,22) \\
 \midrule
-\multicolumn{4}{l}{\textit{Confirmação com várias sementes (médias)$^{b}$}}\\
-WRN-16-4 com 60 épocas (base: 30 épocas; 3 sementes) & 96,86 & 97,60 & piorou ($-$0,13) \\
-CNN com 60 épocas (base: 30 épocas) em outra divisão (10 sementes) & 96,78 & 97,10 & melhorou (+0,10) \\
-RandAugment no lugar do augment (base: CNN de 60 épocas; 3 sementes) & 96,91 & 97,03 & melhorou (+0,12) \\
-AutoAugment SVHN (idem) & 96,86 & 97,27 & melhorou (+0,07) \\
-TrivialAugment (idem) & 96,68 & 97,05 & piorou ($-$0,10) \\
+\multicolumn{7}{l}{\textit{Confirmação com várias sementes (médias)$^{b}$}}\\
+WRN-16-4 com 60 épocas (base: 30 épocas; 3 sementes) & 0,114 & 0,204 & 99,55 & 96,86 & 97,60 & piorou ($-$0,13) \\
+CNN com 60 épocas (base: 30 épocas) em outra divisão (10 sementes) & 0,101 & 0,196 & 99,60 & 96,78 & 97,10 & melhorou (+0,10) \\
+RandAugment no lugar do augment (base: CNN de 60 épocas; 3 sementes) & 0,101 & 0,186 & 99,38 & 96,91 & 97,03 & melhorou (+0,12) \\
+AutoAugment SVHN (idem) & 0,117 & 0,191 & 99,17 & 96,86 & 97,27 & melhorou (+0,07) \\
+TrivialAugment (idem) & 0,109 & 0,196 & 99,33 & 96,68 & 97,05 & piorou ($-$0,10) \\
 \midrule
-\multicolumn{4}{l}{\textit{Ensembles e TTA$^{b,c}$}}\\
-TTA ±2 px no ensemble de 5 \texttt{cnn\_best} (base: sem TTA) & 97,31 & 97,57 & melhorou (+0,25) \\
-10 membros de 60 épocas (base: 5) & 97,41 & 97,73 & melhorou (+0,01) \\
-30 membros de 60 épocas (base: 20) & 97,42 & 97,76 & piorou ($-$0,05) \\
-TTA shift12 no ensemble de 20 (base: sem TTA) & 97,52 & — & melhorou (+0,04) \\
-10 WRN-16-4 no lugar de 10 CNNs, ambos com shift12 & 97,28 & — & piorou ($-$0,10) \\
-20 membros mistos WRN e CNN no lugar de 20 CNNs, ambos com shift12 & 97,46 & — & piorou ($-$0,05) \\
+\multicolumn{7}{l}{\textit{Ensembles e TTA$^{b,c}$}}\\
+TTA ±2 px no ensemble de 5 \texttt{cnn\_best} (base: sem TTA) & — & — & — & 97,31 & 97,57 & melhorou (+0,25) \\
+10 membros de 60 épocas (base: 5) & — & — & — & 97,41 & 97,73 & melhorou (+0,01) \\
+30 membros de 60 épocas (base: 20) & — & — & — & 97,42 & 97,76 & piorou ($-$0,05) \\
+TTA shift12 no ensemble de 20 (base: sem TTA) & — & — & — & 97,52 & — & melhorou (+0,04) \\
+10 WRN-16-4 no lugar de 10 CNNs, ambos com shift12 & — & — & — & 97,28 & — & piorou ($-$0,10) \\
+20 membros mistos WRN e CNN no lugar de 20 CNNs, ambos com shift12 & — & — & — & 97,46 & — & piorou ($-$0,05) \\
