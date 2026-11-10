@@ -189,6 +189,102 @@ lines.append(row([str(k), "", r"\textbf{solução final: os 20 da linha " + str(
                   f"escolhida ({ref['E10']})"]))
 (OUT / "tabelas" / "ensembles.tex").write_text("\n".join(lines) + "\n")
 
+# ---------------------------------------------------------------- tabelas do corpo (9.2 e 9.3)
+# (val, teste) de qualquer experimento: nome do notebook, treino em lote, grupo de sementes ou ensemble
+acc = {n: (f(r, "val_acc"), f(r, "test_acc")) for n, r in nb.items()}
+acc |= {n: (single(n)["val_acc"], single(n)["test_acc"]) for n, _ in TRI}
+acc |= {lab: (m["val_acc"], m["test_acc"]) for lab, m in g.items()}
+acc |= {lab: (va, te) for lab, _, (va, te), _ in ENS}
+acc["final"] = (val["E10"], final["test_acc"])
+
+
+def res(name, base):
+    """'melhorou (+0,26)' / 'piorou (−0,11)' na validação, em relação a `base`."""
+    d = delta(acc[name][0], acc[base][0])
+    return f"{verdict(acc[name][0], acc[base][0])} ({d})"
+
+
+EVOL = [  # 9.2, Tabela 1: cada linha parte da anterior (nome, experimento, modificação)
+    ("linear", "Classificador linear", "camada linear 3072$\\to$10, softmax"),
+    ("mlp_baseline", "MLP baseline", "MLP 512-256, ReLU, Adam lr $10^{-3}$"),
+    ("mlp_sgd_momentum", "MLP + melhoria", "SGD com momentum 0,9 e lr $10^{-2}$ no lugar do Adam"),
+    ("cnn", "CNN", "3 blocos convolucionais (32/64/128 filtros) no lugar da MLP"),
+    ("cnn_augment", "CNN + augment", "data augmentation (rotação, escala e translação)"),
+    ("cnn_best", "\\texttt{cnn\\_best}", "+ weight decay, 30 épocas, label smoothing, 3 convoluções por bloco e cutout"),
+    ("E2", "Ensemble de 5", "média de 5 \\texttt{cnn\\_best} (sementes 42--46)"),
+    ("E4", "Ensemble de 5, 60 épocas", "cada membro treinado por 60 épocas em vez de 30"),
+    ("E6", "Ensemble de 20, 60 épocas", "20 membros (sementes 42--61) em vez de 5"),
+    ("final", "\\textbf{Solução final}", "+ TTA shift12; membros retreinados no treino inteiro$^{a}$"),
+]
+lines, prev = [], None
+for i, (n, name, mod) in enumerate(EVOL, 1):
+    va, te = acc[n]
+    lines.append(row([str(i), name, mod, pct(va), pct(te), res(n, prev) if prev else "---"]))
+    prev = n
+(OUT / "tabelas" / "evolucao.tex").write_text("\n".join(lines) + "\n")
+
+OUTROS = [  # 9.2, Tabela 2: (grupo) ou (nome, modificação, base)
+    "MLP (base: \\texttt{mlp\\_baseline}, salvo indicação)",
+    ("mlp_lr_1e-4", "lr $10^{-4}$", "mlp_baseline"), ("mlp_lr_1e-2", "lr $10^{-2}$", "mlp_baseline"),
+    ("mlp_batch_32", "batch 32", "mlp_baseline"), ("mlp_batch_256", "batch 256", "mlp_baseline"),
+    ("mlp_sgd", "SGD sem momentum, lr $10^{-2}$ (base: Adam com a mesma lr)", "mlp_lr_1e-2"),
+    ("mlp_100", "uma camada oculta de 100", "mlp_baseline"), ("mlp_deep", "camadas 1024-512-256 (base: BatchNorm + Dropout)", "mlp_bn_dropout"),
+    ("mlp_leaky_relu", "Leaky ReLU", "mlp_baseline"), ("mlp_tanh", "tanh", "mlp_baseline"),
+    ("mlp_sigmoid", "sigmóide", "mlp_baseline"), ("mlp_sem_norm", "sem normalização (só /255)", "mlp_baseline"),
+    ("mlp_so_media", "só subtrai a média", "mlp_baseline"), ("mlp_cinza", "tons de cinza", "mlp_baseline"),
+    ("mlp_l2", "regularização L2, $\\lambda=10^{-4}$", "mlp_baseline"), ("mlp_dropout", "Dropout 0,3", "mlp_baseline"),
+    ("mlp_dropout_0.5", "Dropout 0,5 (base: Dropout 0,3)", "mlp_dropout"),
+    ("mlp_bn_dropout", "BatchNorm + Dropout 0,3 (base: Dropout 0,3)", "mlp_dropout"),
+    ("linear_svm", "classificador linear com loss SVM (base: linear)", "linear"),
+    "CNN (base: \\texttt{cnn\\_augment}); as que melhoraram formam a \\texttt{cnn\\_best}",
+    ("cnn_wide", "filtros 64/128/256", "cnn_augment"), ("cnn_wd", "weight decay 0,05", "cnn_augment"),
+    ("cnn_30ep", "30 épocas", "cnn_augment"), ("cnn_ls", "label smoothing 0,1", "cnn_augment"),
+    ("cnn_deep", "3 convoluções por bloco", "cnn_augment"), ("cnn_cutout", "cutout 8×8", "cnn_augment"),
+    "Sobre a \\texttt{cnn\\_best} (base: \\texttt{t01\\_ref\\_bf16}, a \\texttt{cnn\\_best} no script em lote)$^{b}$",
+    ("t12_ep60", "60 épocas", "t01_ref_bf16"), ("t06_ema", "média móvel dos pesos (EMA)", "t01_ref_bf16"),
+    ("t07_color", "brilho/contraste ±20\\%", "t01_ref_bf16"), ("t08_geo05", "augment geométrico ×0,5", "t01_ref_bf16"),
+    ("t09_geo15", "augment geométrico ×1,5", "t01_ref_bf16"), ("t10_cut12", "cutout 12×12", "t01_ref_bf16"),
+    ("t11_cutp05", "cutout em metade das imagens", "t01_ref_bf16"),
+    ("t05_wrn22_1", "ResNet pequena (WRN-22-1)", "t01_ref_bf16"), ("t03_wrn16_4", "Wide ResNet 16-4", "t01_ref_bf16"),
+    ("t04_wrn16_4_sgd", "WRN-16-4 com SGD (base: WRN-16-4)", "t03_wrn16_4"),
+    ("t17_wrn16_8", "WRN-16-8 (base: WRN-16-4)", "t03_wrn16_4"), ("t18_wrn28_4", "WRN-28-4 (base: WRN-16-4)", "t03_wrn16_4"),
+    "Confirmação com várias sementes (médias)$^{b}$",
+    ("w60", "WRN-16-4 com 60 épocas (base: 30 épocas; 3 sementes)", "w30"),
+    ("cf60", "CNN com 60 épocas (base: 30 épocas) em outra divisão (10 sementes)", "cf30"),
+    ("a_ra", "RandAugment no lugar do augment (base: CNN de 60 épocas; 3 sementes)", "e60"),
+    ("a_aa", "AutoAugment SVHN (idem)", "e60"), ("a_ta", "TrivialAugment (idem)", "e60"),
+    "Ensembles e TTA$^{b,c}$",
+    ("E3", "TTA ±2 px no ensemble de 5 \\texttt{cnn\\_best} (base: sem TTA)", "E2"),
+    ("E5", "10 membros de 60 épocas (base: 5)", "E4"), ("E7", "30 membros de 60 épocas (base: 20)", "E6"),
+    ("E10", "TTA shift12 no ensemble de 20 (base: sem TTA)", "E6"),
+    ("E9", "10 WRN-16-4 no lugar de 10 CNNs, ambos com shift12", "E8"),
+    ("E11", "20 membros mistos WRN e CNN no lugar de 20 CNNs, ambos com shift12", "E10"),
+]
+lines = []
+for item in OUTROS:
+    if isinstance(item, str):
+        lines += [r"\midrule" if lines else "", r"\multicolumn{4}{l}{\textit{" + item + r"}}\\"]
+        continue
+    n, mod, base = item
+    va, te = acc[n]
+    lines.append(row([mod, pct(va), pct(te), res(n, base)]))
+(OUT / "tabelas" / "outros.tex").write_text("\n".join(l for l in lines if l) + "\n")
+
+TREINO = [("linear", "Classificador linear"), ("mlp_baseline", "MLP baseline"), ("mlp_sgd_momentum", "MLP + melhoria"),
+          ("cnn", "CNN"), ("cnn_augment", "CNN + augment"), ("cnn_best", "\\texttt{cnn\\_best}")]
+lines = []
+for n, name in TREINO:
+    r = nb[n]
+    lines.append(row([name, num(f(r, "train_loss")), num(f(r, "val_loss")), pct(f(r, "train_acc")), pct(f(r, "val_acc")),
+                      pct(f(r, "test_acc")), f"{r['melhor_epoca']}/{r['epocas']}",
+                      f"{100 * (f(r, 'train_acc') - f(r, 'val_acc')):.1f}".replace(".", ",")]))
+e = dg["e60_val_s42"]
+lines.append(row(["membro da solução final (s42)$^{b}$", num(float(e["train_loss"])), num(float(e["val_loss"])),
+                  pct(float(e["train_acc"])), pct(float(e["val_acc"])), pct(single("e60_val_s42")["test_acc"]),
+                  f"{e['melhor_epoca']}/{e['epocas']}",
+                  f"{100 * (float(e['train_acc']) - float(e['val_acc'])):.1f}".replace(".", ",")]))
+(OUT / "tabelas" / "treino.tex").write_text("\n".join(lines) + "\n")
+
 # números citados no texto: um \newcommand por valor, para o .tex nunca digitar números à mão
 cmd = {
     "valFinal": pct(curve[("cnn60", "shift12", 20)]), "testeFinal": pct(final["test_acc"]),
