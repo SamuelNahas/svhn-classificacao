@@ -8,8 +8,9 @@ import math
 import sys
 from pathlib import Path
 
-N_EXPERIMENTS = 28  # fixo de propósito: mudar os experimentos do notebook exige atualizar aqui
+N_EXPERIMENTS = 30  # fixo de propósito: mudar os experimentos do notebook exige atualizar aqui
 N_SPLITS_SMOKE = 2  # divisões do random subsampling no modo de teste
+N_SEEDS_SMOKE = 2  # modelos do ensemble no modo de teste
 N_EXTRAS = 7  # #14: cnn_sem_bn, 3 inicializações da MLP e 3 tamanhos de treino
 
 
@@ -98,9 +99,28 @@ def check_outputs(root):
         for k in ("train_acc", "val_acc", "test_acc"):
             if not 0 <= float(r[k]) <= 1:
                 errors.append(f"extra {r['experimento']}: {k} = {r[k]} fora de [0, 1]")
+    if not (results / "ensemble.png").exists():
+        errors.append("ensemble.png não foi gerada")
     for f in ("extras_sem_bn.png", "extras_inicializacao.png", "extras_curva_aprendizado.png"):
         if not (results / f).exists():
             errors.append(f"{f} não foi gerada")
+
+    with open(results / "tta_ensemble.csv") as f:
+        methods = list(csv.DictReader(f))
+    if len(methods) != 2 * N_SEEDS_SMOKE:
+        errors.append(f"tta_ensemble.csv tem {len(methods)} métodos, esperado {2 * N_SEEDS_SMOKE} (1 a N modelos, com e sem TTA)")
+    if sum(r["escolhido"] == "True" for r in methods) != 1:
+        errors.append("tta_ensemble.csv deve ter exatamente um método escolhido")
+    for r in methods:
+        for k in ("val_acc", "test_acc"):
+            if not 0 <= float(r[k]) <= 1:
+                errors.append(f"método {r['metodo']}: {k} = {r[k]} fora de [0, 1]")
+    pred = json.loads((results / "final_predicao.json").read_text())
+    if not 0 <= pred["test_acc"] <= 1 or pred["n_modelos"] < 1:
+        errors.append(f"final_predicao.json inválido: {pred}")
+    n_final = len(list((root / "weights" / "ensemble").glob("final_seed*.pt")))
+    if n_final != pred["n_modelos"] - 1:  # o primeiro modelo do ensemble é o weights/best.pt
+        errors.append(f"weights/ensemble tem {n_final} modelos finais, esperado {pred['n_modelos'] - 1}")
 
     n_images = len(list((root / "adicional").glob("*.png")))
     lines = (root / "SAMUEL_WILKER_BERNARDO_RESULTS.txt").read_text().split("\n")
