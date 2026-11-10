@@ -4,3 +4,8 @@ __pycache__/
 .DS_Store
 smoke/
 smoke-executed.ipynb
+relatorio/*.aux
+relatorio/*.log
+relatorio/*.out
+relatorio/*.fls
+relatorio/*.fdb_latexmk

@@ -67,7 +67,8 @@ ordem fixa) e comparado com a solução atual (97,31%, ensemble de 5 + TTA) na v
 solução fechada.
 
 ## Rodada 2 — 10/11, 08:10 a 15:00 (registrada antes dos resultados da rodada 1b)
-Os treinos rodam ao lado da produção (vLLM ociosa). Às 14:55 tudo para e a produção é conferida.
+Os treinos rodam ao lado dos outros serviços das máquinas, que estão ociosos. Às 14:55 tudo para e os
+serviços são conferidos.
 
 A. **Em andamento:** retomada dos parciais (e60 s50/s51, t12_ep60, t15_wrn16_4_color, t16_wrn16_4_ep60, w30
    s43/s44), confirmação 1b (w60 s43/s44) e capacidade, com uma semente: WRN-16-8 (t17) e WRN-28-4 (t18).

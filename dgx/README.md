@@ -1,6 +1,6 @@
 # Bateria pt4 (#20) nas DGX Spark — concluída em 10/11/2026
 
-Busca de mais acurácia com as duas NVIDIA DGX Spark (GB10) do projeto p2p (Lenovo Partners/ClickTI). O plano
+Busca de mais acurácia com duas NVIDIA DGX Spark (GB10). O plano
 de cada rodada foi registrado em [`PLANO.md`](PLANO.md) **antes** de rodar, e a pesquisa bibliográfica que
 motivou a rodada 4 está em [`PESQUISA.md`](PESQUISA.md). Os resultados ficam em [`../results/dgx/`](../results/dgx/),
 uma pasta por experimento, e a tabela com todos os treinos está em [`resumo.csv`](../results/dgx/resumo.csv).
@@ -21,10 +21,9 @@ shift12**. Ela tem **97,52% de validação**, contra 97,31% da solução do PR #
   são medidas numa amostra fixa de 7.325 imagens do treino (`TRAIN_EVAL_N`). A validação é sempre completa.
 
 ## Infraestrutura
-- Máquinas: `Spark-1-new` (spark-797f) e `Spark-2-new` (spark-2b14), via NVIDIA Sync. GPU GB10 (sm_121), com
-  121 GB de memória unificada.
+- Máquinas: duas DGX Spark, acessadas via NVIDIA Sync. GPU GB10 (sm_121), com 121 GB de memória unificada.
 - Container: `nvcr.io/nvidia/pytorch:26.08-py3`, com torch 2.14, CUDA 13.4 e cuDNN 9.25. A imagem
-  `vllm:26.08` que já estava nas máquinas **não serve para treinar**: o cuDNN dela não tem o backward das
+  `nvcr.io/nvidia/vllm:26.08-py3` **não serve para treinar**: o cuDNN dela não tem o backward das
   convoluções. Sem cuDNN, a mesma época levava 27 s, contra 8,3 s.
 - Código: [`svhn_dgx.py`](svhn_dgx.py), com `run`, `worker` (fila de configs) e `infer` (TTA), e
   [`final_ensemble.py`](final_ensemble.py), que monta a solução final. Nas máquinas fica em `~/svhn-dgx/`
@@ -34,15 +33,6 @@ shift12**. Ela tem **97,52% de validação**, contra 97,31% da solução do PR #
 - Paralelismo: 3 ou 4 treinos por GPU. Com 4 treinos, cada um leva 10,6 s por época, contra 8,3 s de um treino
   sozinho, o que dá ~3× mais trabalho pelo mesmo tempo.
 - No total, foram 119 treinos e ~27 h de GPU somadas, em duas janelas: 06/11 à tarde e 10/11 de 08:10 a 11:25.
-
-### Produção (projeto p2p)
-- **06/11:** às ~15:15, as 4 vLLM (`spark-llm`, `spark-embeddings`, `spark-reranker` e `spark-llm-replica`)
-  foram paradas com `docker stop`, depois do backup do estado em `~/svhn-dgx/prod-backup-20261106/`. Às
-  15:34–15:38 foram restauradas com `restaurar.sh`, e a saúde foi conferida: `/health` 200 nas portas 8000,
-  8001 e 8002, e o chat, os embeddings e o reranker respondendo. Das 15:38 em diante, os treinos rodaram ao lado
-  da produção. O `postgres` nunca foi tocado.
-- **10/11:** os treinos rodaram ao lado da produção, com a vLLM ociosa, sem parar nenhum serviço. Os últimos
-  terminaram às 11:13. Às 13:01, as 4 vLLM estavam no ar (`Up 3 days`) e a GPU só tinha os processos delas.
 
 ### Incidentes
 - 06/11, 15:27: os primeiros treinos do ensemble caíram ao retomar do checkpoint, porque o estado do RNG era
@@ -146,11 +136,11 @@ receita completa do artigo do RandAugment (WRN-28-2, SGD, cutout 16, 200 épocas
   está em [`membros.json`](../results/dgx/final/membros.json).
 - **Predição:** média do softmax dos 20 membros na imagem e nas 8 cópias de shift12.
 - **Arquivos:** os pesos estão em `weights/pt4/` (20 × 4 MB, com a config e a época). As probabilidades do teste
-  e do conjunto adicional estão em `results/dgx/final/`, e o `SAMUEL_WILKER_BERNARDO_RESULTS.txt` é o argmax de
-  `probs_extra.npy`. Os dois foram conferidos: concordam em 100% das 203.856 linhas.
-- **Notebook:** a seção "Solução final pt4" do [`svhn.ipynb`](../svhn.ipynb) carrega `weights/pt4/` e refaz a
-  predição. No Mac (MPS, fp32), o teste dá 97,89%, e as predições diferem das da DGX (bf16) em 4 das 26.032
-  imagens.
+  e do conjunto adicional calculadas pelo script, em bf16, estão em `results/dgx/final/`.
+- **Predições:** o `SAMUEL_WILKER_BERNARDO_RESULTS.txt` é gerado pelo notebook, que é o código entregue: a seção
+  "Solução final pt4" do [`svhn.ipynb`](../svhn.ipynb) carrega `weights/pt4/` e classifica o teste e o conjunto
+  adicional. No Mac (MPS, fp32), o teste dá 97,89%, como no script. As predições do conjunto adicional diferem das
+  do script (bf16) em 15 das 203.856 imagens.
 
 ## O que ficou para depois
 - **Receita do RandAugment** (WRN-28-2, 200 épocas): na #22, com a estimativa de custo.
