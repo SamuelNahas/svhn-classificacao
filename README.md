@@ -5,8 +5,9 @@ de melhoria no dataset [SVHN](https://pytorch.org/vision/stable/generated/torchv
 
 Os termos usados no projeto estão em [GLOSSARY.md](GLOSSARY.md).
 
-**Resultado:** a predição final é um **ensemble de 5 `cnn_best` com TTA**, com **97,31% de acurácia de validação
-e 97,63% de teste** (um único `cnn_best`: 96,68% e 97,13%). As 203.856 predições do conjunto adicional estão em
+**Resultado:** a predição final é um **ensemble de 20 `cnn_best` de 60 épocas com TTA** (pt4, nas DGX Spark),
+com **97,52% de acurácia de validação e 97,89% de teste**. O ensemble anterior, de 5 `cnn_best` com TTA, tinha
+97,31% e 97,63%, e um único `cnn_best` tem 96,68% e 97,13%. As 203.856 predições do conjunto adicional estão em
 [`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt).
 
 ## Estrutura do repositório
@@ -19,6 +20,9 @@ e 97,63% de teste** (um único `cnn_best`: 96,68% e 97,13%). As 203.856 prediç�
 | `results/` | Métricas, curvas e tabelas de cada experimento e das avaliações (commitado; funciona como cache) |
 | `weights/best.pt` | Pesos do modelo final, com a config e a normalização |
 | `weights/ensemble/` | Pesos dos modelos do ensemble: 5 treinados só no treino (escolha) e 4 no `split="train"` inteiro (predição) |
+| `weights/pt4/` | Pesos dos 20 membros da solução final pt4, retreinados no `split="train"` inteiro |
+| [`dgx/`](dgx/README.md) | Bateria pt4 nas DGX Spark: código, plano registrado, pesquisa bibliográfica e resultados |
+| `results/dgx/` | Um diretório por treino da pt4, as curvas de ensemble e a solução final (`final/`) |
 | `SAMUEL_WILKER_BERNARDO_RESULTS.txt` | Predições do conjunto adicional, uma por linha |
 | [`tests/check_smoke.py`](tests/check_smoke.py) | Confere as saídas do modo de teste |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI: roda o notebook em modo de teste em cada PR |
@@ -236,10 +240,29 @@ Escolhido: **ensemble de 5 + TTA**. Os 5 modelos são retreinados em todo o `spl
 `weights/best.pt`; os outros ficam em `weights/ensemble/`), e o ensemble final tem **97,63% no teste**, contra
 96,85% do modelo final anterior: o erro cai cerca de 25%.
 
+### Solução final pt4: ensemble de 20 CNNs de 60 épocas (#20)
+
+A bateria pt4 rodou 119 treinos nas duas DGX Spark, com o mesmo protocolo do notebook, e tudo foi escolhido pela
+validação. Os detalhes estão em [`dgx/README.md`](dgx/README.md), e o plano de cada rodada, registrado antes de
+rodar, em [`dgx/PLANO.md`](dgx/PLANO.md). O que ela mostrou:
+- **60 épocas em vez de 30:** +0,10 ponto por modelo e +0,14 no ensemble de 10, confirmado numa segunda divisão
+  que não guiou nenhuma escolha.
+- **Ensemble maior:** a curva da CNN de 60 épocas sobe até 20 membros e para (25 e 30 não ganham). Com TTA
+  shift12 (deslocamentos de 1 e 2 px, 8 cópias), dá 97,52% de validação.
+- **O que não entrou:** a Wide ResNet 16-4 é melhor sozinha (97,08% contra 96,66%), mas o ensemble dela fica
+  abaixo (97,28% contra 97,45% com 10 membros). O ensemble misto e o augment automático (RandAugment, AutoAugment
+  e TrivialAugment) não passaram das regras registradas. EMA e mudar a intensidade do augment não ajudaram, e
+  brilho/contraste e cutout 12×12 ficaram no limite do ruído, com uma semente só.
+
+Os 20 membros foram retreinados em todo o `split="train"`, cada um até a melhor época de validação da sua
+semente, e estão em `weights/pt4/`. No teste, lido uma única vez com a solução fechada, o ensemble tem
+**97,89%**, contra 97,63% do ensemble de 5: o erro cai de 2,37% para 2,11%. Quando `weights/pt4/` existe, a
+seção "Solução final pt4" do notebook substitui o ensemble de 5 na análise de erros e nas predições.
+
 ## Predições do conjunto adicional
 
 Depois do modelo final, o notebook classifica as imagens do professor e grava
-`SAMUEL_WILKER_BERNARDO_RESULTS.txt` com o método escolhido acima (ensemble de 5 + TTA): uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
+`SAMUEL_WILKER_BERNARDO_RESULTS.txt` com o método escolhido acima (ensemble de 20 da pt4 + TTA shift12): uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
 Antes de rodar, coloque as imagens (`000000.png`, `000001.png`, ...) em `data/adicional/`: no Colab, faça
 upload e descompacte lá; localmente, basta um link, por exemplo `ln -s ~/Downloads/images data/adicional`.
 
@@ -399,10 +422,16 @@ python tests/check_smoke.py smoke
 - TTA e ensemble de 1 a 5 modelos, escolhidos pela validação: ensemble de 5 + TTA, com 97,63% no teste.
 - `SAMUEL_WILKER_BERNARDO_RESULTS.txt` e `weights/` regenerados com o método escolhido.
 
+### PR #23 — Experimentos pt4 nas DGX Spark (#20)
+- Bateria de 119 treinos nas DGX Spark (`dgx/`), com plano registrado antes de cada rodada e pesquisa
+  bibliográfica.
+- Nova solução: ensemble de 20 CNNs de 60 épocas + TTA shift12, com 97,52% de validação e 97,89% de teste.
+- `SAMUEL_WILKER_BERNARDO_RESULTS.txt`, `weights/pt4/` e a seção "Solução final pt4" do notebook.
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
-- [x] Pesos: `weights/best.pt`
+- [x] Pesos: `weights/best.pt` e, para a solução final pt4, `weights/pt4/`
 - [x] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
 - [ ] Relatório em PDF (#5)
 
@@ -410,3 +439,5 @@ python tests/check_smoke.py smoke
 
 1. Escrever o relatório com os números deste README e de `results/` (#5).
 2. Validar o formato do `RESULTS.txt` com um script próprio e no CI (#11).
+3. Experimentos futuros na #22: a receita completa do RandAugment (WRN-28-2, 200 épocas) e um teste curto de
+   mais épocas (100 e 200) na CNN.

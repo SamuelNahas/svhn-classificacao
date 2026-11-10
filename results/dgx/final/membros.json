@@ -1,0 +1,138 @@
+{
+  "tta": "shift12",
+  "membros": [
+    {
+      "semente": 42,
+      "epoca": 54,
+      "origem": "zf60_s42/final_ep54.pt",
+      "epoca_escolhida_por": "e60_val_s42/summary.json"
+    },
+    {
+      "semente": 43,
+      "epoca": 59,
+      "origem": "zf60_s43/final_ep59.pt",
+      "epoca_escolhida_por": "e60_val_s43/summary.json"
+    },
+    {
+      "semente": 44,
+      "epoca": 56,
+      "origem": "zf60_s44/final_ep56.pt",
+      "epoca_escolhida_por": "e60_val_s44/summary.json"
+    },
+    {
+      "semente": 45,
+      "epoca": 54,
+      "origem": "zf60_s45/final_ep54.pt",
+      "epoca_escolhida_por": "e60_val_s45/summary.json"
+    },
+    {
+      "semente": 46,
+      "epoca": 60,
+      "origem": "zf60_s46/final_ep60.pt",
+      "epoca_escolhida_por": "e60_val_s46/summary.json"
+    },
+    {
+      "semente": 47,
+      "epoca": 53,
+      "origem": "zf60_s47/final_ep53.pt",
+      "epoca_escolhida_por": "e60_val_s47/summary.json"
+    },
+    {
+      "semente": 48,
+      "epoca": 58,
+      "origem": "zf60_s48/final_ep58.pt",
+      "epoca_escolhida_por": "e60_val_s48/summary.json"
+    },
+    {
+      "semente": 49,
+      "epoca": 40,
+      "origem": "zf60_s49/final_ep40.pt",
+      "epoca_escolhida_por": "e60_val_s49/summary.json"
+    },
+    {
+      "semente": 50,
+      "epoca": 60,
+      "origem": "zf60_s50/final_ep60.pt",
+      "epoca_escolhida_por": "e60_val_s50/summary.json"
+    },
+    {
+      "semente": 51,
+      "epoca": 51,
+      "origem": "zf60_s51/final_ep51.pt",
+      "epoca_escolhida_por": "e60_val_s51/summary.json"
+    },
+    {
+      "semente": 52,
+      "epoca": 45,
+      "origem": "zf60_s52/final_ep45.pt",
+      "epoca_escolhida_por": "e60_val_s52/summary.json"
+    },
+    {
+      "semente": 53,
+      "epoca": 51,
+      "origem": "zf60_s53/final_ep51.pt",
+      "epoca_escolhida_por": "e60_val_s53/summary.json"
+    },
+    {
+      "semente": 54,
+      "epoca": 59,
+      "origem": "zf60_s54/final_ep59.pt",
+      "epoca_escolhida_por": "e60_val_s54/summary.json"
+    },
+    {
+      "semente": 55,
+      "epoca": 53,
+      "origem": "zf60_s55/final_ep53.pt",
+      "epoca_escolhida_por": "e60_val_s55/summary.json"
+    },
+    {
+      "semente": 56,
+      "epoca": 46,
+      "origem": "zf60_s56/final_ep46.pt",
+      "epoca_escolhida_por": "e60_val_s56/summary.json"
+    },
+    {
+      "semente": 57,
+      "epoca": 47,
+      "origem": "zf60_s57/final_ep47.pt",
+      "epoca_escolhida_por": "e60_val_s57/summary.json"
+    },
+    {
+      "semente": 58,
+      "epoca": 55,
+      "origem": "zf60_s58/final_ep55.pt",
+      "epoca_escolhida_por": "e60_val_s58/summary.json"
+    },
+    {
+      "semente": 59,
+      "epoca": 56,
+      "origem": "zf60_s59/final_ep56.pt",
+      "epoca_escolhida_por": "e60_val_s59/summary.json"
+    },
+    {
+      "semente": 60,
+      "epoca": 60,
+      "origem": "zf60_s60/final_ep60.pt",
+      "epoca_escolhida_por": "e60_val_s60/summary.json"
+    },
+    {
+      "semente": 61,
+      "epoca": 55,
+      "origem": "zf60_s61/final_ep55.pt",
+      "epoca_escolhida_por": "e60_val_s61/summary.json"
+    }
+  ],
+  "env": {
+    "host": "e304dbc6f465",
+    "gpu": "NVIDIA GB10",
+    "torch": "2.14.0a0+4fdf77b940.nv26.08",
+    "cudnn_ativo": true,
+    "train_eval_n": "todo",
+    "cuda": "13.4",
+    "cudnn": 92500,
+    "python": "3.12.3",
+    "codigo_sha256": "3a630183e95ca32f",
+    "git": "pt4-final",
+    "dados_sha256": "?"
+  }
+}

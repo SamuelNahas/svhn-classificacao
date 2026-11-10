@@ -1,0 +1,25 @@
+{
+  "melhor_epoca": 28,
+  "epocas": 30,
+  "val_acc": 0.9701024293899536,
+  "val_loss": 0.18840566277503967,
+  "train_acc": 0.9834812879562378,
+  "train_loss": 0.14979614317417145,
+  "parametros": 2748890,
+  "epoca_s_media": 21.094177098109803,
+  "aval_s_media": 1.8044405698776245,
+  "tempo_total_s": 696.8765516281128,
+  "ambiente": {
+    "host": "49c546a4639f",
+    "gpu": "NVIDIA GB10",
+    "torch": "2.14.0a0+4fdf77b940.nv26.08",
+    "cudnn_ativo": true,
+    "train_eval_n": "7325",
+    "cuda": "13.4",
+    "cudnn": 92500,
+    "python": "3.12.3",
+    "codigo_sha256": "0eeb425bd76f7053",
+    "git": "pt4",
+    "dados_sha256": "?"
+  }
+}

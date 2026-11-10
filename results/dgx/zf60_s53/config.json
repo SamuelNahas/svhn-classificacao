@@ -1,0 +1,26 @@
+{
+  "arch": "cnn",
+  "arch_args": {
+    "convs": 3
+  },
+  "epochs": 60,
+  "batch": 64,
+  "lr": 0.001,
+  "optimizer": "adamw",
+  "momentum": 0.9,
+  "nesterov": false,
+  "weight_decay": 0.05,
+  "label_smoothing": 0.1,
+  "augment": true,
+  "geo": 1.0,
+  "color": 0.0,
+  "cutout": true,
+  "cutout_size": 8,
+  "cutout_p": 1.0,
+  "ema": 0.0,
+  "amp": "bf16",
+  "seed": 53,
+  "split_seed": 42,
+  "final": true,
+  "stop_epoch": null
+}
