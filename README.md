@@ -429,7 +429,7 @@ python tests/check_smoke.py smoke
 - Nova solução: ensemble de 20 CNNs de 60 épocas + TTA shift12, com 97,52% de validação e 97,89% de teste.
 - `SAMUEL_WILKER_BERNARDO_RESULTS.txt`, `weights/pt4/` e a seção "Solução final pt4" do notebook.
 
-### Relatório (#5)
+### PR #26 — Relatório (#5)
 - `relatorio/relatorio.pdf`, com as seções 9.1 a 9.5 do enunciado. As tabelas e os números citados no texto são
   gerados por `relatorio/gerar.py` a partir de `results/`, sem digitação manual.
 - `SAMUEL_WILKER_BERNARDO_RESULTS.txt` regerado pelo notebook com a solução pt4: difere em 15 das 203.856 linhas
