@@ -422,7 +422,7 @@ python tests/check_smoke.py smoke
 - TTA e ensemble de 1 a 5 modelos, escolhidos pela validação: ensemble de 5 + TTA, com 97,63% no teste.
 - `SAMUEL_WILKER_BERNARDO_RESULTS.txt` e `weights/` regenerados com o método escolhido.
 
-### PR da #20 — Experimentos pt4 nas DGX Spark
+### PR #23 — Experimentos pt4 nas DGX Spark (#20)
 - Bateria de 119 treinos nas DGX Spark (`dgx/`), com plano registrado antes de cada rodada e pesquisa
   bibliográfica.
 - Nova solução: ensemble de 20 CNNs de 60 épocas + TTA shift12, com 97,52% de validação e 97,89% de teste.
