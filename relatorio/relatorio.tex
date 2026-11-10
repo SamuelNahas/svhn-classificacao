@@ -6,6 +6,7 @@
 \usepackage[margin=2cm]{geometry}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{float}
 \usepackage{longtable}
 \usepackage{array}
 \usepackage[font=small,labelfont=bf]{caption}
@@ -14,7 +15,8 @@
 
 \graphicspath{{../results/}{figuras/}}
 \makeatletter
-\newcommand{\linhas}[1]{\@@input #1 }  % \input primitivo: o do LaTeX quebra dentro da longtable
+\newcommand{\linhas}[1]{\@@input #1 }
+\setlength{\@fptop}{0pt}\setlength{\@fpsep}{14pt}\setlength{\@fpbot}{0pt plus 1fil}  % \input primitivo: o do LaTeX quebra dentro da longtable
 \makeatother
 \input{tabelas/numeros.tex}
 
@@ -183,7 +185,7 @@ pixels. Com shift12, o teste só foi calculado para a solução final (---).
 A Tabela~\ref{tab:treino} traz os resultados de treinamento e validação dos modelos principais, e as
 Figuras~\ref{fig:linear} a~\ref{fig:comp} mostram a loss e a acurácia de treino e validação por época.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering\small
 \caption{Resultados de treinamento e validação dos modelos principais (Tabela~\ref{tab:evol}), na melhor época de
 validação. Loss: entropia cruzada. Acurácias em \%. Diferença: acurácia de treino menos a de validação, em
@@ -202,48 +204,6 @@ $^b$ No treino em lote, a loss e a acurácia de treino são medidas numa amostra
 \end{minipage}
 \end{table}
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.85\textwidth]{linear.png}
-  \caption{Classificador linear. Treino e validação ficam juntos e baixos (cerca de 30\%): é
-  \textbf{underfitting}, porque o modelo não tem capacidade para separar os dígitos.}
-  \label{fig:linear}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.95\textwidth]{mlp.pdf}
-  \caption{MLP baseline (Adam) e a melhor MLP na validação (SGD com momentum). A loss de treino continua caindo
-  enquanto a de validação estabiliza, e a acurácia de treino passa da de validação por cerca de 9 pontos:
-  \textbf{overfitting}.}
-  \label{fig:mlp}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.85\textwidth]{cnn.png}
-  \caption{CNN sem augment. O treino chega perto de 100\%, e a loss de validação atinge o mínimo na época 10 e
-  volta a subir: \textbf{overfitting}, que o data augmentation corrige nas versões seguintes.}
-  \label{fig:cnn}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.95\textwidth]{cnn_best_e60.pdf}
-  \caption{A \texttt{cnn\_best} (30 épocas) e um membro da solução final (a mesma CNN, 60 épocas, semente 42).
-  Com augment, cutout, weight decay e label smoothing, a diferença entre treino e validação é menor que na
-  Figura~\ref{fig:cnn} e a loss de validação não volta a subir. No membro de 60 épocas, as métricas de treino
-  são medidas numa amostra fixa de 7.325 imagens do treino.}
-  \label{fig:cnnbest}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.75\textwidth]{comparacao_validacao.png}
-  \caption{Acurácia de validação por época dos principais modelos.}
-  \label{fig:comp}
-\end{figure}
-
 \paragraph{Overfitting, underfitting e instabilidade.} O linear tem underfitting
 (\treinoLinear{} de treino e \valLinear{} de validação). A MLP baseline tem overfitting forte (\treinoMlp{} de
 treino contra \valMlp{} de validação), que Dropout e BatchNorm reduzem (para cerca de 3 pontos), mas sem que a validação passe de 87\%. A CNN sem augment também tem
@@ -251,7 +211,48 @@ overfitting (\treinoCnn{} contra \valCnn{}), e a regularização da \texttt{cnn\
 única instabilidade séria foi a MLP com Adam e taxa de aprendizado $10^{-2}$: a loss fica parada em 2,24 desde a
 primeira época e a acurácia em cerca de 20\% (Tabela~\ref{tab:outros}). Com SGD e a mesma taxa, o treino converge.
 
-\clearpage
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{linear.png}
+  \caption{Classificador linear. Treino e validação ficam juntos e baixos (cerca de 30\%): é
+  \textbf{underfitting}, porque o modelo não tem capacidade para separar os dígitos.}
+  \label{fig:linear}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{mlp.pdf}
+  \caption{MLP baseline (Adam) e a melhor MLP na validação (SGD com momentum). A loss de treino continua caindo
+  enquanto a de validação estabiliza, e a acurácia de treino passa da de validação por cerca de 9 pontos:
+  \textbf{overfitting}.}
+  \label{fig:mlp}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{cnn.png}
+  \caption{CNN sem augment. O treino chega perto de 100\%, e a loss de validação atinge o mínimo na época 10 e
+  volta a subir: \textbf{overfitting}, que o data augmentation corrige nas versões seguintes.}
+  \label{fig:cnn}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{cnn_best_e60.pdf}
+  \caption{A \texttt{cnn\_best} (30 épocas) e um membro da solução final (a mesma CNN, 60 épocas, semente 42).
+  Com augment, cutout, weight decay e label smoothing, a diferença entre treino e validação é menor que na
+  Figura~\ref{fig:cnn} e a loss de validação não volta a subir. No membro de 60 épocas, as métricas de treino
+  são medidas numa amostra fixa de 7.325 imagens do treino.}
+  \label{fig:cnnbest}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{comparacao_validacao.png}
+  \caption{Acurácia de validação por época dos principais modelos.}
+  \label{fig:comp}
+\end{figure}
+
 \section{Melhor solução}
 
 \paragraph{Arquitetura.} Um ensemble de 20 CNNs iguais à \texttt{cnn\_best}: três blocos de três convoluções
