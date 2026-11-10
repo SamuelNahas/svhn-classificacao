@@ -53,3 +53,10 @@
 20:07:43 ep  53/60 | treino loss 0.1082 acc 0.9941 | val loss 0.1967 acc 0.9657 | 7.6s + aval 0.2s
 20:07:49 ep  54/60 | treino loss 0.1078 acc 0.9940 | val loss 0.1971 acc 0.9657 | 5.4s + aval 0.2s
 20:07:55 ep  55/60 | treino loss 0.1063 acc 0.9945 | val loss 0.1972 acc 0.9655 | 5.4s + aval 0.2s
+12:07:52 retomando da época 56
+12:08:16 ep  56/60 | treino loss 0.1074 acc 0.9943 | val loss 0.1978 acc 0.9649 | 20.4s + aval 3.2s
+12:08:29 ep  57/60 | treino loss 0.1054 acc 0.9943 | val loss 0.1963 acc 0.9657 | 12.7s + aval 0.6s
+12:08:46 ep  58/60 | treino loss 0.1062 acc 0.9943 | val loss 0.1961 acc 0.9655 | 15.3s + aval 0.9s
+12:09:03 ep  59/60 | treino loss 0.1068 acc 0.9943 | val loss 0.1970 acc 0.9655 | 15.8s + aval 0.9s
+12:09:18 ep  60/60 | treino loss 0.1044 acc 0.9944 | val loss 0.1952 acc 0.9657 | 13.9s + aval 0.9s
+12:31:00 retomando da época 61

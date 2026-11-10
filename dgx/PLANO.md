@@ -120,3 +120,11 @@ Comparação pareada com e60_val_s42–44 (96,60 / 96,96 / 96,81; média 96,79).
 novo ensemble de 20 (sementes 42–61, com retreinos finais) se ganhar ≥ 0,15 na média e na maioria dos pares; o
 novo ensemble só substitui o atual (k = 20, shift12, 97,52%) se ganhar na validação. Se nenhuma política
 ganhar, fecha-se com o ensemble atual.
+
+### Resultado da rodada 4 e fechamento (10/11, 13:00)
+- Média das 3 sementes: RandAugment 96,91% (+0,12; ganha em 2 dos 3 pares), AutoAugment SVHN 96,86% (+0,07) e
+  TrivialAugment 96,68% (−0,11). Nenhuma política chegou a +0,15, então **fecha-se com o ensemble atual**:
+  CNN de 60 épocas, k = 20, shift12, 97,52% de validação.
+- Teste, lido uma única vez na solução fechada: **97,89%** (`results/dgx/final/test_acc.txt`).
+- Ficam para a #22: a receita completa do artigo do RandAugment (WRN-28-2, 200 épocas) e um teste pareado de
+  mais épocas na CNN (100 e 200, sementes 42–44 contra `e60_val_s42–44`, com a mesma regra da rodada 4).

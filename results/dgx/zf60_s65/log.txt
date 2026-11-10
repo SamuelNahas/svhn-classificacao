@@ -1,0 +1,10 @@
+14:37:07 ep   1/60 | treino loss 0.3548 acc 0.9137 | val loss nan acc nan | 11.8s + aval 0.5s
+14:37:21 ep   2/60 | treino loss 0.3396 acc 0.9220 | val loss nan acc nan | 12.7s + aval 0.5s
+14:37:35 ep   3/60 | treino loss 0.2536 acc 0.9446 | val loss nan acc nan | 13.8s + aval 0.5s
+14:37:49 ep   4/60 | treino loss 0.2497 acc 0.9526 | val loss nan acc nan | 13.3s + aval 0.5s
+14:38:03 ep   5/60 | treino loss 0.2173 acc 0.9574 | val loss nan acc nan | 13.1s + aval 0.5s
+14:38:15 ep   6/60 | treino loss 0.2233 acc 0.9522 | val loss nan acc nan | 11.7s + aval 0.5s
+14:38:27 ep   7/60 | treino loss 0.2422 acc 0.9586 | val loss nan acc nan | 11.8s + aval 0.5s
+14:38:39 ep   8/60 | treino loss 0.1976 acc 0.9626 | val loss nan acc nan | 11.7s + aval 0.5s
+14:38:52 ep   9/60 | treino loss 0.2110 acc 0.9633 | val loss nan acc nan | 11.8s + aval 0.5s
+14:39:04 ep  10/60 | treino loss 0.2061 acc 0.9656 | val loss nan acc nan | 11.7s + aval 0.5s

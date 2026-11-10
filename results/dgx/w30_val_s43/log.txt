@@ -5,3 +5,27 @@
 20:05:17 ep   5/30 | treino loss 0.2591 acc 0.9485 | val loss 0.2656 acc 0.9447 | 25.7s + aval 1.8s
 20:05:37 ep   6/30 | treino loss 0.2299 acc 0.9545 | val loss 0.2365 acc 0.9510 | 18.8s + aval 1.2s
 20:05:54 ep   7/30 | treino loss 0.2276 acc 0.9556 | val loss 0.2401 acc 0.9532 | 15.4s + aval 1.3s
+12:07:51 retomando da época 8
+12:08:28 ep   8/30 | treino loss 0.2205 acc 0.9604 | val loss 0.2376 acc 0.9524 | 31.0s + aval 6.3s
+12:09:02 ep   9/30 | treino loss 0.2058 acc 0.9644 | val loss 0.2212 acc 0.9563 | 31.7s + aval 2.1s
+12:09:36 ep  10/30 | treino loss 0.2058 acc 0.9683 | val loss 0.2292 acc 0.9595 | 32.2s + aval 2.1s
+12:10:10 ep  11/30 | treino loss 0.2092 acc 0.9659 | val loss 0.2310 acc 0.9556 | 31.2s + aval 2.5s
+12:10:44 ep  12/30 | treino loss 0.2051 acc 0.9712 | val loss 0.2349 acc 0.9559 | 31.7s + aval 2.3s
+12:11:19 ep  13/30 | treino loss 0.1931 acc 0.9691 | val loss 0.2172 acc 0.9607 | 32.1s + aval 2.1s
+12:11:52 ep  14/30 | treino loss 0.1951 acc 0.9739 | val loss 0.2326 acc 0.9584 | 31.1s + aval 2.0s
+12:12:22 ep  15/30 | treino loss 0.1680 acc 0.9765 | val loss 0.2034 acc 0.9637 | 27.7s + aval 2.0s
+12:12:52 ep  16/30 | treino loss 0.1736 acc 0.9773 | val loss 0.2145 acc 0.9625 | 28.0s + aval 2.0s
+12:13:22 ep  17/30 | treino loss 0.1657 acc 0.9803 | val loss 0.2086 acc 0.9631 | 27.9s + aval 2.0s
+12:13:52 ep  18/30 | treino loss 0.1593 acc 0.9817 | val loss 0.2105 acc 0.9642 | 27.8s + aval 2.0s
+12:14:22 ep  19/30 | treino loss 0.1580 acc 0.9829 | val loss 0.2118 acc 0.9642 | 28.0s + aval 2.0s
+12:14:52 ep  20/30 | treino loss 0.1443 acc 0.9844 | val loss 0.2018 acc 0.9653 | 27.8s + aval 2.0s
+12:15:21 ep  21/30 | treino loss 0.1405 acc 0.9873 | val loss 0.1982 acc 0.9652 | 27.9s + aval 2.0s
+12:15:51 ep  22/30 | treino loss 0.1379 acc 0.9885 | val loss 0.1993 acc 0.9683 | 27.8s + aval 2.0s
+12:16:21 ep  23/30 | treino loss 0.1375 acc 0.9892 | val loss 0.2020 acc 0.9678 | 28.0s + aval 2.0s
+12:16:53 ep  24/30 | treino loss 0.1318 acc 0.9898 | val loss 0.1971 acc 0.9689 | 29.0s + aval 2.2s
+12:17:24 ep  25/30 | treino loss 0.1314 acc 0.9896 | val loss 0.1978 acc 0.9679 | 29.0s + aval 2.2s
+12:17:58 ep  26/30 | treino loss 0.1322 acc 0.9903 | val loss 0.1988 acc 0.9676 | 31.3s + aval 2.2s
+12:18:31 ep  27/30 | treino loss 0.1304 acc 0.9911 | val loss 0.1994 acc 0.9676 | 31.5s + aval 2.2s
+12:19:05 ep  28/30 | treino loss 0.1275 acc 0.9913 | val loss 0.1959 acc 0.9690 | 31.3s + aval 2.2s
+12:19:39 ep  29/30 | treino loss 0.1261 acc 0.9913 | val loss 0.1959 acc 0.9691 | 31.5s + aval 2.2s
+12:20:13 ep  30/30 | treino loss 0.1272 acc 0.9917 | val loss 0.1962 acc 0.9700 | 31.2s + aval 2.2s
