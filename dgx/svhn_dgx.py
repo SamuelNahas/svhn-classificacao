@@ -39,7 +39,33 @@ DEFAULTS = dict(  # padrões = cnn_best do notebook (#17), menos a arquitetura
     arch="cnn", arch_args={}, epochs=30, batch=64, lr=1e-3, optimizer="adamw", momentum=0.9, nesterov=False,
     weight_decay=0.05, label_smoothing=0.1, augment=True, geo=1.0, color=0.0, cutout=True, cutout_size=8,
     cutout_p=1.0, ema=0.0, amp="none", seed=SEED, split_seed=SEED, final=False, stop_epoch=None,
+    policy=None, ra_n=2, ra_m=9,  # augment automático por imagem, na CPU (substitui o `augment` geométrico)
 )
+
+
+class PolicyData(torch.utils.data.Dataset):
+    """Imagens uint8 com RandAugment, TrivialAugmentWide ou AutoAugment (política SVHN), uma por imagem."""
+
+    def __init__(self, x, y, cfg):
+        from torchvision import transforms as T
+        self.x, self.y = x, y
+        self.t = {"ra": lambda: T.RandAugment(num_ops=cfg["ra_n"], magnitude=cfg["ra_m"]),
+                  "ta": T.TrivialAugmentWide,
+                  "aa_svhn": lambda: T.AutoAugment(T.AutoAugmentPolicy.SVHN)}[cfg["policy"]]()
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, i):
+        return self.t(self.x[i]), self.y[i]
+
+
+def policy_loader(x, y, cfg):
+    torch.set_num_threads(1)
+    return torch.utils.data.DataLoader(
+        PolicyData(x.cpu(), y.cpu(), cfg), batch_size=cfg["batch"], shuffle=True, num_workers=4,
+        persistent_workers=True, drop_last=len(x) % cfg["batch"] == 1, pin_memory=True,
+        generator=torch.Generator().manual_seed(cfg["seed"]))
 
 
 # ---------------------------------------------------------------- dados
@@ -200,20 +226,30 @@ def train(cfg, run_dir):
         log(run_dir, f"retomando da época {start_ep}")
 
     n = len(x_tr) - 1 if len(x_tr) % cfg["batch"] == 1 else len(x_tr)  # sem lote de 1 imagem
-    for ep in range(start_ep, n_epochs + 1):
-        t0 = time.time()
-        model.train()
+    loader = policy_loader(x_tr, y_tr, cfg) if cfg.get("policy") else None
+
+    def batches():
+        if loader is not None:
+            for xb, yb in loader:
+                yield xb.to(DEVICE, non_blocking=True), yb.to(DEVICE, non_blocking=True)
+            return
         idx = torch.randperm(len(x_tr), device=DEVICE)
         for i in range(0, n, cfg["batch"]):
             j = idx[i:i + cfg["batch"]]
-            xb = preprocess(x_tr[j], mean, std, cfg, train=True)
+            yield x_tr[j], y_tr[j]
+
+    for ep in range(start_ep, n_epochs + 1):
+        t0 = time.time()
+        model.train()
+        for xraw, yb in batches():
+            xb = preprocess(xraw, mean, std, cfg, train=True)
             if cfg["augment"]:
                 xb = augment(xb, cfg["geo"])
             if cfg["cutout"]:
                 xb = cutout(xb, cfg["cutout_size"], cfg["cutout_p"])
             with autocast(cfg):
                 out = model(xb.contiguous(memory_format=torch.channels_last))
-                loss = F.cross_entropy(out.float(), y_tr[j], label_smoothing=cfg["label_smoothing"])
+                loss = F.cross_entropy(out.float(), yb, label_smoothing=cfg["label_smoothing"])
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -252,7 +288,7 @@ def train(cfg, run_dir):
                     epoch=best["epoch"]), run_dir / "best.pt")
     np.save(run_dir / "test_probs.npy", test_probs.cpu().numpy().astype(np.float32))  # só para a avaliação final
     if not cfg["final"]:
-        np.save(run_dir / "val_probs.npy", best["val_probs"].numpy().astype(np.float32))
+        np.save(run_dir / "val_probs.npy", best["val_probs"].cpu().numpy().astype(np.float32))
     b = best["epoch"] - 1
     warm = hist["epoch_s"][1:] or hist["epoch_s"]
     summary = dict(

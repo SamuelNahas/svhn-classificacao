@@ -65,3 +65,58 @@ Critério: a média das 3 sementes e a diferença em cada par. Uma configuraçã
 na média e na maioria dos pares. Só depois disso o ensemble homogêneo grande é treinado (sementes 42, 43, … em
 ordem fixa) e comparado com a solução atual (97,31%, ensemble de 5 + TTA) na validação. O teste fica para a
 solução fechada.
+
+## Rodada 2 — 10/11, 08:10 a 15:00 (registrada antes dos resultados da rodada 1b)
+Os treinos rodam ao lado da produção (vLLM ociosa). Às 14:55 tudo para e a produção é conferida.
+
+A. **Em andamento:** retomada dos parciais (e60 s50/s51, t12_ep60, t15_wrn16_4_color, t16_wrn16_4_ep60, w30
+   s43/s44), confirmação 1b (w60 s43/s44) e capacidade, com uma semente: WRN-16-8 (t17) e WRN-28-4 (t18).
+B. **Configuração dos membros (C\*)**, escolhida pela regra da rodada 1b: WRN-16-4 com 30 ou 60 épocas. Uma versão
+   maior (t17/t18) só substitui se ganhar ≥ 0,15 e se confirmar com as sementes 43 e 44.
+C. **Ensemble homogêneo de C\*:** sementes 42, 43, …, 61, nessa ordem. Avaliado com k = 5, 10, 15 e 20 membros
+   (e 1 a 20 na curva). Extensão para 62–71 (25/30) só se k = 15 → 20 ainda ganhar.
+D. **Ensemble heterogêneo**, sem treino extra: C\* e a CNN de 60 épocas (e60) intercaladas em ordem fixa
+   (C\*42, e60_42, C\*43, e60_43, …). Avaliado com os mesmos k.
+E. **TTA** escolhido na validação entre none, shift1, shift2 e shift12, para cada estratégia, com o ganho
+   registrado à parte. A média é sempre a simples do softmax; não há pesos por membro.
+F. **Retreino final em paralelo:** os membros de C\* (e de e60, se o heterogêneo ganhar) são retreinados em todo o
+   split train na mesma ordem de sementes (`final: true`, guardando as épocas a partir da 15). Cada membro para
+   na melhor época de validação da mesma semente. Só os k primeiros da solução escolhida são usados.
+G. **Fechamento** (se houver tempo): escolha final pela validação, uma única avaliação no teste, RESULTS.txt.
+   Se não der tempo, o fechamento fica para a próxima janela e a solução do PR #21 continua valendo.
+
+### Regra de parada da WRN homogênea (registrada às 09:05, com k = 7 visto e k = 10 ainda não)
+No k = 10, se o ensemble homogêneo de WRN-16-4 (com o melhor TTA) ficar abaixo do ensemble homogêneo da CNN de
+60 épocas na validação e com loss de validação maior, a WRN homogênea para em 10 membros. A GPU vai para a CNN de
+60 épocas (sementes 52–61, para k = 15/20, e os retreinos finais 42–61) e para o heterogêneo (WRN 42–51 + CNN,
+intercaladas). Os membros de validação 54–57 da WRN, já treinados, ficam registrados mas fora da ordem fixa.
+- **09:28 — regra aplicada:** no k = 10, a WRN homogênea com o melhor TTA (shift12) deu 97,28% (loss 0,188),
+  contra 97,45% da CNN de 60 épocas (shift2; loss 0,176). A WRN homogênea para em 10. Os retreinos de WRN que
+  não tinham começado (wf30 46–51) ficam em espera (`q-hold/`), só para o caso de o heterogêneo vencer; os da
+  CNN de 60 épocas passam para a frente da fila.
+
+## Rodada 3 — 09:57 (registrada antes de rodar)
+- k = 20 da CNN de 60 épocas: 97,47% sem TTA e 97,50–97,52% com TTA; de 15 para 20 ainda ganha de +0,01 a +0,05.
+  Pela regra, estende-se para **25 e 30** (sementes 62–71) com os retreinos finais correspondentes.
+- **Confirmação do procedimento em outra divisão** (`split_seed` 43; a validação é outra parte do split train e
+  os modelos dessa divisão nunca são avaliados na validação da divisão 42): CNN de 60 épocas contra CNN de 30
+  épocas (a receita do PR #21), sementes 42–51 em cada, comparando os ensembles com k = 5 e 10, com e sem TTA.
+  A pergunta é se "60 épocas + ensemble grande" também ganha numa divisão que não guiou nenhuma escolha.
+- **Escolha final:** o tamanho é fixado pela curva (o menor k em que ela já estabilizou, entre 20, 25 e 30; um k
+  maior só se ganhar ≥ 0,05) e o TTA é o melhor nesse k. Só depois o teste é lido uma vez.
+
+## Rodada 4 — augment automático (10:48, registrada antes de rodar; teste ainda não lido)
+Motivada por `dgx/PESQUISA.md` (RandAugment, TrivialAugment e AutoAugment-SVHN, com a melhor evidência no SVHN
+sem o split extra). Base: a CNN de 60 épocas (e60), trocando só o augment geométrico (`augment: false`) por uma
+política por imagem; o cutout 8×8, o label smoothing e o resto ficam iguais.
+
+| Nome | Política | Sementes |
+|---|---|---|
+| a_ta | TrivialAugmentWide | 42, 43, 44 |
+| a_ra | RandAugment N = 3, M = 9 | 42, 43, 44 |
+| a_aa | AutoAugment, política SVHN | 42, 43, 44 |
+
+Comparação pareada com e60_val_s42–44 (96,60 / 96,96 / 96,81; média 96,79). Uma política só vira a base de um
+novo ensemble de 20 (sementes 42–61, com retreinos finais) se ganhar ≥ 0,15 na média e na maioria dos pares; o
+novo ensemble só substitui o atual (k = 20, shift12, 97,52%) se ganhar na validação. Se nenhuma política
+ganhar, fecha-se com o ensemble atual.
