@@ -5,8 +5,9 @@ de melhoria no dataset [SVHN](https://pytorch.org/vision/stable/generated/torchv
 
 Os termos usados no projeto estão em [GLOSSARY.md](GLOSSARY.md).
 
-**Resultado:** o modelo final (`cnn_best`) tem **96,26% de acurácia de validação e 96,85% de teste**. As
-203.856 predições do conjunto adicional estão em
+**Resultado:** a predição final é um **ensemble de 20 `cnn_best` de 60 épocas com TTA** (pt4, nas DGX Spark),
+com **97,52% de acurácia de validação e 97,89% de teste**. O ensemble anterior, de 5 `cnn_best` com TTA, tinha
+97,31% e 97,63%, e um único `cnn_best` tem 96,68% e 97,13%. As 203.856 predições do conjunto adicional estão em
 [`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt).
 
 ## Estrutura do repositório
@@ -18,6 +19,10 @@ Os termos usados no projeto estão em [GLOSSARY.md](GLOSSARY.md).
 | `requirements.txt` | Dependências para rodar fora do Colab |
 | `results/` | Métricas, curvas e tabelas de cada experimento e das avaliações (commitado; funciona como cache) |
 | `weights/best.pt` | Pesos do modelo final, com a config e a normalização |
+| `weights/ensemble/` | Pesos dos modelos do ensemble: 5 treinados só no treino (escolha) e 4 no `split="train"` inteiro (predição) |
+| `weights/pt4/` | Pesos dos 20 membros da solução final pt4, retreinados no `split="train"` inteiro |
+| [`dgx/`](dgx/README.md) | Bateria pt4 nas DGX Spark: código, plano registrado, pesquisa bibliográfica e resultados |
+| `results/dgx/` | Um diretório por treino da pt4, as curvas de ensemble e a solução final (`final/`) |
 | `SAMUEL_WILKER_BERNARDO_RESULTS.txt` | Predições do conjunto adicional, uma por linha |
 | [`tests/check_smoke.py`](tests/check_smoke.py) | Confere as saídas do modo de teste |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI: roda o notebook em modo de teste em cada PR |
@@ -86,7 +91,9 @@ qual material da disciplina veio a ideia.
 | 25 | `cnn_wd` | weight decay 0.05 (23) | |
 | 26 | `cnn_30ep` | 30 épocas (23) | |
 | 27 | `cnn_ls` | label smoothing 0.1 (23) | |
-| 28 | `cnn_best` | (23) + as mudanças de 24–27 que melhoraram a validação | |
+| 28 | `cnn_deep` | 3 convoluções por bloco em vez de 2 (23) | |
+| 29 | `cnn_cutout` | cutout: quadrado 8×8 zerado em cada imagem do treino (23) | |
+| 30 | `cnn_best` | (23) + as mudanças de 24–29 que melhoraram a validação | |
 
 A loss de validação é sempre a entropia cruzada, para comparar todos os experimentos; o `linear_svm` também
 reporta a loss SVM (`val_loss_svm`). A loss SVM segue a fórmula da aula:
@@ -95,7 +102,8 @@ L_i = Σ_{j≠y_i} max(0, s_j − s_{y_i} + 1).
 ## Resultados
 
 Acurácias na melhor época de validação (`results/results.csv`). A `cnn_best` combina as variações que
-melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep` e `cnn_ls`. A `cnn_wide` piorou e ficou de fora.
+melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep`, `cnn_ls`, `cnn_deep` e `cnn_cutout`. A
+`cnn_wide` piorou e ficou de fora.
 
 | # | Experimento | Treino | Validação | Teste | Δ val vs. base |
 |---|---|---|---|---|---|
@@ -126,7 +134,9 @@ melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep` e `
 | 25 | `cnn_wd` | 97,46% | 95,93% | 96,22% | +0,34 (23) |
 | 26 | `cnn_30ep` | 98,54% | 96,01% | 96,37% | +0,42 (23) |
 | 27 | `cnn_ls` | 97,31% | 95,81% | 96,51% | +0,22 (23) |
-| 28 | `cnn_best` | 98,71% | **96,26%** | **96,87%** | +0,67 (23) |
+| 28 | `cnn_deep` | 97,88% | 96,03% | 96,37% | +0,44 (23) |
+| 29 | `cnn_cutout` | 96,87% | 95,82% | 96,00% | +0,23 (23) |
+| 30 | `cnn_best` | 98,78% | **96,68%** | **97,05%** | +1,09 (23) |
 
 ![Acurácia de validação por época](results/comparacao_validacao.png)
 
@@ -146,6 +156,10 @@ melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep` e `
   smoothing reduzem o overfitting e cada um melhora a validação.
 - **Custo:** a `cnn_wide` levou ~2,7 vezes o tempo da `cnn_augment` sem ganhar acurácia; treinar 30 épocas
   rendeu mais que alargar a rede.
+- **Profundidade em vez de largura:** a `cnn_deep` (3 convoluções por bloco, +24% de parâmetros) foi a melhor
+  mudança isolada (+0,44), enquanto a `cnn_wide` (4× os parâmetros) piorou. O cutout também ajudou (+0,23) e
+  reduziu a diferença entre treino e validação. Somando tudo, a `cnn_best` ganhou +0,42 sobre a versão anterior
+  (96,26%), que não tinha as duas.
 
 ## Avaliações complementares
 
@@ -156,17 +170,18 @@ melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep` e `
   48,65% de teste, acima do linear e bem abaixo da MLP.
 - **Random subsampling** (Lecture 11): os 3 melhores na validação são treinados em mais 5 divisões treino/validação,
   com média ± desvio. A escolha do modelo final continua sendo pela divisão fixa (semente 42). **Resultado:** a
-  ordem se mantém e o desvio é pequeno, então a escolha da `cnn_best` não depende da divisão:
+  `cnn_best` fica à frente em todas as divisões e o desvio é pequeno, então a escolha não depende da divisão. A
+  `cnn_deep` e a `cnn_30ep` empatam:
 
   | Modelo | Validação | Teste |
   |---|---|---|
-  | `cnn_best` | 96,14% ± 0,12 | 96,85% ± 0,09 |
+  | `cnn_best` | 96,40% ± 0,16 | 97,12% ± 0,09 |
+  | `cnn_deep` | 95,76% ± 0,19 | 96,45% ± 0,12 |
   | `cnn_30ep` | 95,78% ± 0,14 | 96,35% ± 0,07 |
-  | `cnn_wd` | 95,66% ± 0,18 | 96,36% ± 0,05 |
 
 - **Análise de erros do modelo final** (Lecture 11): matriz de confusão no teste, precisão/recall/F1 por dígito e
-  exemplos de erros. **Resultado:** F1 entre 0,953 (dígito 9) e 0,980 (dígito 4); as confusões mais comuns são
-  7 → 1 (64 imagens), 3 → 9 (48) e 5 → 3 (35).
+  exemplos de erros, feitos com o método das predições (ensemble de 5 + TTA). **Resultado:** F1 entre 0,968
+  (dígito 9) e 0,983 (dígito 4); as confusões mais comuns são 7 → 1 (45 imagens), 3 → 9 (34) e 5 → 3 (21).
 
   ![Matriz de confusão](results/confusao.png)
 
@@ -178,6 +193,8 @@ Saídas em `results/`:
 - `knn.csv`: acurácia de validação por K e de teste no K escolhido.
 - `subsampling.csv` e `subsampling/`: média ± desvio dos 3 melhores em 5 divisões.
 - `confusao.png`, `metricas_por_classe.csv` e `erros.png`: análise de erros do modelo final.
+- `tta_ensemble.csv` e `ensemble.png`: validação e teste do ensemble de 1 a 5 modelos, com e sem TTA.
+- `final_predicao.json`: método usado nas predições e a sua acurácia de teste.
 
 ## Modelo final
 
@@ -191,26 +208,74 @@ No fim do notebook, o experimento com a **maior acurácia de validação** é re
 Se `weights/best.pt` já existe com a mesma config, ele é carregado em vez de retreinado. Ao recarregar, o
 notebook confere que os pesos salvos reproduzem a acurácia de teste.
 
-**Modelo escolhido:** `cnn_best`, a CNN de 3 blocos (32/64/128 filtros, duas convoluções com BatchNorm e ReLU
-por bloco, Dropout 0,3) com data augmentation, AdamW (lr 1e-3, weight decay 0,05), label smoothing 0,1, batch 64
-e LR cosseno em 30 épocas. Retreinada até a época 26 com todo o `split="train"`, ficou com **96,85% no teste**.
+**Modelo escolhido:** `cnn_best`, a CNN de 3 blocos (32/64/128 filtros, três convoluções com BatchNorm e ReLU
+por bloco, Dropout 0,3, 1.009.226 parâmetros) com data augmentation e cutout, AdamW (lr 1e-3, weight decay
+0,05), label smoothing 0,1, batch 64 e LR cosseno em 30 épocas. Retreinada até a época 24 com todo o
+`split="train"`, ficou com **97,13% no teste**.
+
+### TTA e ensemble (#17)
+
+Duas formas de melhorar a predição sem mudar o treino, escolhidas **pela validação** com modelos treinados só
+no treino:
+- **TTA:** média do softmax da imagem e de 4 cópias deslocadas ±2 px (sem espelhamento: dígito espelhado é
+  outro símbolo).
+- **Ensemble:** a `cnn_best` treinada com as sementes 42 a 46 na mesma divisão; o ensemble de *k* é a média do
+  softmax dos *k* primeiros, de 1 a 5.
+
+| Modelos | Validação | Validação com TTA | Teste | Teste com TTA |
+|---|---|---|---|---|
+| 1 | 96,68% | 96,76% | 97,05% | 97,11% |
+| 2 | 96,89% | 96,97% | 97,40% | 97,47% |
+| 3 | 97,06% | 97,15% | 97,46% | 97,45% |
+| 4 | 97,05% | 97,20% | 97,46% | 97,50% |
+| 5 | 97,06% | **97,31%** | 97,51% | **97,57%** |
+
+![Ensemble](results/ensemble.png)
+
+O TTA ajuda em todos os tamanhos. Sem TTA, o ensemble estabiliza em 3 modelos; com TTA, ainda sobe até 5, mas
+de 3 para 5 o ganho é de 0,16 ponto (~12 das 7.325 imagens de validação), perto do desvio entre divisões
+(±0,16). Mais modelos devem render pouco, e cada um custa ~27 min (validação + retreino).
+
+Escolhido: **ensemble de 5 + TTA**. Os 5 modelos são retreinados em todo o `split="train"` (o da semente 42 é o
+`weights/best.pt`; os outros ficam em `weights/ensemble/`), e o ensemble final tem **97,63% no teste**, contra
+96,85% do modelo final anterior: o erro cai cerca de 25%.
+
+### Solução final pt4: ensemble de 20 CNNs de 60 épocas (#20)
+
+A bateria pt4 rodou 119 treinos nas duas DGX Spark, com o mesmo protocolo do notebook, e tudo foi escolhido pela
+validação. Os detalhes estão em [`dgx/README.md`](dgx/README.md), e o plano de cada rodada, registrado antes de
+rodar, em [`dgx/PLANO.md`](dgx/PLANO.md). O que ela mostrou:
+- **60 épocas em vez de 30:** +0,10 ponto por modelo e +0,14 no ensemble de 10, confirmado numa segunda divisão
+  que não guiou nenhuma escolha.
+- **Ensemble maior:** a curva da CNN de 60 épocas sobe até 20 membros e para (25 e 30 não ganham). Com TTA
+  shift12 (deslocamentos de 1 e 2 px, 8 cópias), dá 97,52% de validação.
+- **O que não entrou:** a Wide ResNet 16-4 é melhor sozinha (97,08% contra 96,66%), mas o ensemble dela fica
+  abaixo (97,28% contra 97,45% com 10 membros). O ensemble misto e o augment automático (RandAugment, AutoAugment
+  e TrivialAugment) não passaram das regras registradas. EMA e mudar a intensidade do augment não ajudaram, e
+  brilho/contraste e cutout 12×12 ficaram no limite do ruído, com uma semente só.
+
+Os 20 membros foram retreinados em todo o `split="train"`, cada um até a melhor época de validação da sua
+semente, e estão em `weights/pt4/`. No teste, lido uma única vez com a solução fechada, o ensemble tem
+**97,89%**, contra 97,63% do ensemble de 5: o erro cai de 2,37% para 2,11%. Quando `weights/pt4/` existe, a
+seção "Solução final pt4" do notebook substitui o ensemble de 5 na análise de erros e nas predições.
 
 ## Predições do conjunto adicional
 
 Depois do modelo final, o notebook classifica as imagens do professor e grava
-`SAMUEL_WILKER_BERNARDO_RESULTS.txt`: uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
+`SAMUEL_WILKER_BERNARDO_RESULTS.txt` com o método escolhido acima (ensemble de 20 da pt4 + TTA shift12): uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
 Antes de rodar, coloque as imagens (`000000.png`, `000001.png`, ...) em `data/adicional/`: no Colab, faça
 upload e descompacte lá; localmente, basta um link, por exemplo `ln -s ~/Downloads/images data/adicional`.
 
 O conjunto tem 203.856 imagens PNG 32×32, sem rótulos, e as classes previstas ficam bem equilibradas (entre
-19.993 e 21.642 imagens por dígito). Sem rótulos não há acurácia; pela confiança do modelo, comparada com a do
-teste, a estimativa é de ~97%.
+20.106 e 21.271 imagens por dígito). Sem rótulos não há acurácia; a melhor referência é o teste, 97,63%. Em
+relação às predições do modelo final anterior, 3.253 imagens (1,6%) mudaram de classe.
 
 ## Experimentos extras (#14)
 
 Ideias fora do escopo da entrega, registradas na #14. Elas ficam numa seção própria do notebook, com cache em
 `results/extras/` e tabela em `results/extras.csv`, e **não entram** na tabela principal, no random subsampling
-nem na escolha do modelo final. Cada uma é comparada com a sua base; rodar as 7 levou ~14 min no M5.
+nem na escolha do modelo final. Cada uma é comparada com a sua base; rodar as 7 levou ~22 min no M5. A curva
+de aprendizado acompanha o modelo final, então foi refeita com a `cnn_best` atual.
 
 | Extra | Base | Treino | Validação | Teste | Δ val vs. base |
 |---|---|---|---|---|---|
@@ -218,9 +283,9 @@ nem na escolha do modelo final. Cada uma é comparada com a sua base; rodar as 7
 | `mlp_init_xavier` | `mlp_baseline` | 94,23% | 85,77% | 82,96% | −0,48 |
 | `mlp_init_kaiming_normal` | `mlp_baseline` | 93,78% | 85,35% | 82,30% | −0,90 |
 | `mlp_init_normal_0.01` | `mlp_baseline` | 94,15% | 85,86% | 83,28% | −0,40 |
-| `cnn_best_10pct` | `cnn_best` | 99,14% | 93,24% | 93,28% | −3,02 |
-| `cnn_best_25pct` | `cnn_best` | 98,60% | 94,73% | 95,24% | −1,53 |
-| `cnn_best_50pct` | `cnn_best` | 98,88% | 95,66% | 96,19% | −0,60 |
+| `cnn_best_10pct` | `cnn_best` | 99,06% | 93,95% | 94,04% | −2,73 |
+| `cnn_best_25pct` | `cnn_best` | 99,12% | 95,25% | 95,79% | −1,43 |
+| `cnn_best_50pct` | `cnn_best` | 99,09% | 96,07% | 96,61% | −0,61 |
 
 - **CNN sem BatchNorm:** a loss de treino cai no mesmo ritmo (até um pouco mais baixa no fim), mas a validação
   estaciona em ~94,3% contra 95,3% com BN. Aqui o BN ajuda mais na generalização do que na velocidade de
@@ -238,12 +303,12 @@ nem na escolha do modelo final. Cada uma é comparada com a sua base; rodar as 7
 
   ![Inicialização](results/extras_inicializacao.png)
 
-- **Curva de aprendizado da `cnn_best`:** a validação sobe de 93,2% (10% do treino) para 94,7% (25%), 95,7%
-  (50%) e 96,3% (100%), enquanto o treino fica entre 98,6% e 99,1% em todos. Os ganhos de cada passo diminuem
-  (+1,5 de 10% para 25%, +0,9 de 25% para 50% e +0,6 de 50% para 100%), mas ainda não zeraram: mais dados
-  provavelmente ainda ajudariam. Ressalva: todas as frações treinam as mesmas 30 épocas, então a de 10% faz 10
-  vezes menos passos de otimização; parte da queda pode vir disso, e não só de ter menos dados. A diferença entre treino e
-  validação diminui de 5,9 para 2,4 pontos.
+- **Curva de aprendizado da `cnn_best`:** a validação sobe de 94,0% (10% do treino) para 95,3% (25%), 96,1%
+  (50%) e 96,7% (100%), enquanto o treino fica entre 98,8% e 99,1% em todos. Os ganhos de cada passo diminuem
+  (+1,3 de 10% para 25%, +0,8 de 25% para 50% e +0,6 de 50% para 100%), mas ainda não zeraram: mais dados
+  provavelmente ainda ajudariam. A diferença entre treino e validação diminui de 5,1 para 2,1 pontos.
+  Ressalva: todas as frações treinam as mesmas 30 épocas, então a de 10% faz 10 vezes menos passos de
+  otimização; parte da queda pode vir disso, e não só de ter menos dados.
 
   ![Curva de aprendizado](results/extras_curva_aprendizado.png)
 
@@ -277,8 +342,8 @@ variável, o notebook roda normalmente.
 
 O GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) executa o notebook inteiro nesse modo
 em cada PR e em cada push na `main` (exceto quando só mudam arquivos `.md`), e [`tests/check_smoke.py`](tests/check_smoke.py) confere as saídas:
-28 experimentos, acurácias entre 0 e 1, losses positivas, curvas, `final.json`, pesos salvos, kNN,
-random subsampling, análise de erros, os 7 experimentos extras e o arquivo de predições (uma linha por imagem, só dígitos). O notebook
+30 experimentos, acurácias entre 0 e 1, losses positivas, curvas, `final.json`, pesos salvos, kNN,
+random subsampling, análise de erros, os 7 experimentos extras, a tabela de TTA e ensemble e o arquivo de predições (uma linha por imagem, só dígitos). O notebook
 executado fica disponível como artefato do job.
 
 Para rodar localmente (cerca de 1 min):
@@ -305,8 +370,8 @@ python tests/check_smoke.py smoke
   | [#8](../../issues/8) | Atualizar este README | Em revisão (PR #9) |
   | [#5](../../issues/5) | Relatório em LaTeX | A fazer |
   | [#11](../../issues/11) | Validação do arquivo de predições | A fazer |
-  | [#17](../../issues/17) | Experimentos pt3: CNN mais profunda, cutout, TTA e ensemble | A fazer |
-  | [#14](../../issues/14) | Ideias de experimentos futuros (fora do escopo) | Registro |
+  | [#17](../../issues/17) | Experimentos pt3: CNN mais profunda, cutout, TTA e ensemble | Em revisão (PR #21) |
+  | [#14](../../issues/14) | Ideias de experimentos futuros (fora do escopo) | Em revisão (PR #19) |
 
 - **Branches:** uma por issue (`<número>-<descrição>`), com PR que fecha a issue. Quando uma issue depende de outra
   ainda aberta, o PR é empilhado sobre a branch da anterior. Pilha atual: #7 → #12 → #15 → #16 → #9.
@@ -351,10 +416,22 @@ python tests/check_smoke.py smoke
   (`results/extras/`), sem mudar a tabela principal nem o modelo final.
 - `batches()` não gera mais um último lote de 1 imagem.
 
+### PR #21 — Experimentos pt3 (#17)
+- `cnn_deep` (3 convoluções por bloco) e `cnn_cutout` entram nas variações da CNN e na `cnn_best`, que sobe para
+  96,68% de validação e vira o novo modelo final.
+- TTA e ensemble de 1 a 5 modelos, escolhidos pela validação: ensemble de 5 + TTA, com 97,63% no teste.
+- `SAMUEL_WILKER_BERNARDO_RESULTS.txt` e `weights/` regenerados com o método escolhido.
+
+### PR #23 — Experimentos pt4 nas DGX Spark (#20)
+- Bateria de 119 treinos nas DGX Spark (`dgx/`), com plano registrado antes de cada rodada e pesquisa
+  bibliográfica.
+- Nova solução: ensemble de 20 CNNs de 60 épocas + TTA shift12, com 97,52% de validação e 97,89% de teste.
+- `SAMUEL_WILKER_BERNARDO_RESULTS.txt`, `weights/pt4/` e a seção "Solução final pt4" do notebook.
+
 ## Entregáveis
 
 - [x] Código: `svhn.ipynb`
-- [x] Pesos: `weights/best.pt`
+- [x] Pesos: `weights/best.pt` e, para a solução final pt4, `weights/pt4/`
 - [x] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
 - [ ] Relatório em PDF (#5)
 
@@ -362,4 +439,5 @@ python tests/check_smoke.py smoke
 
 1. Escrever o relatório com os números deste README e de `results/` (#5).
 2. Validar o formato do `RESULTS.txt` com um script próprio e no CI (#11).
-3. Experimentos pt3 para subir a acurácia do conjunto adicional: CNN mais profunda, cutout, TTA e ensemble (#17).
+3. Experimentos futuros na #22: a receita completa do RandAugment (WRN-28-2, 200 épocas) e um teste curto de
+   mais épocas (100 e 200) na CNN.
