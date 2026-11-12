@@ -202,6 +202,7 @@ lines.append(row(["membro da solução final (s42)$^{b}$", num(float(e["train_lo
 (OUT / "tabelas" / "treino.tex").write_text("\n".join(lines) + "\n")
 
 # números citados no texto: um \newcommand por valor, para o .tex nunca digitar números à mão
+mlp_bn_dropout = nb["mlp_bn_dropout"]
 cmd = {
     "valFinal": pct(ENS["E10"][0]), "testeFinal": pct(final["test_acc"]),
     "valEnsCinco": pct(float(tta5["ensemble de 5 + TTA"]["val_acc"])),
@@ -211,13 +212,18 @@ cmd = {
     "valCnnBest": pct(f(nb["cnn_best"], "val_acc")), "testeCnnBestFinal": pct(json.loads((RES / "final.json").read_text())["test_acc"]),
     "valLinear": pct(f(nb["linear"], "val_acc")), "treinoLinear": pct(f(nb["linear"], "train_acc")),
     "valMlp": pct(f(nb["mlp_baseline"], "val_acc")), "treinoMlp": pct(f(nb["mlp_baseline"], "train_acc")),
-    "valMlpMelhor": pct(f(nb["mlp_sgd_momentum"], "val_acc")), "valCnn": pct(f(nb["cnn"], "val_acc")),
+    "valMlpMelhor": pct(f(nb["mlp_sgd_momentum"], "val_acc")),
+    "valMlpBnDropout": pct(f(mlp_bn_dropout, "val_acc")), "valCnn": pct(f(nb["cnn"], "val_acc")),
     "treinoCnn": pct(f(nb["cnn"], "train_acc")),
     "valWtrinta": pct(g["w30"]["val_acc"]), "valWsessenta": pct(g["w60"]["val_acc"]),
     "valCftrinta": pct(g["cf30"]["val_acc"]), "valCfsessenta": pct(g["cf60"]["val_acc"]),
     "valEsessentaMedia": pct(st.mean(float(dg[n]["val_acc"]) for n in e60)),
 }
-(OUT / "tabelas" / "numeros.tex").write_text("".join(f"\\newcommand{{\\{k}}}{{{v}\\%}}\n" for k, v in cmd.items()))
+macros = {name: f"{value}\\%" for name, value in cmd.items()}
+macros["difMlpBnDropout"] = num(100 * (f(mlp_bn_dropout, "train_acc") - f(mlp_bn_dropout, "val_acc")), nd=1)
+(OUT / "tabelas" / "numeros.tex").write_text(
+    "".join(f"\\newcommand{{\\{name}}}{{{value}}}\n" for name, value in macros.items())
+)
 
 # ---------------------------------------------------------------- figuras novas
 

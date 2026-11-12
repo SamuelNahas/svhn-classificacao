@@ -108,7 +108,7 @@ experimentos, agrupados por família, cada um comparado ao modelo de que deriva.
 época de validação, e a escolha sempre foi feita pela validação. A Tabela~\ref{tab:outros} também traz a loss e a acurácia de treino de cada
 experimento; as dos modelos da Tabela~\ref{tab:evol} estão na Tabela~\ref{tab:treino} (Seção~\ref{sec:curvas}).
 
-\begin{table}[h]
+\begin{table}[H]
 \centering\small
 \caption{Evolução até a melhor solução. Acurácias em \%. A última coluna compara a validação com a linha
 anterior, em pontos.}\label{tab:evol}
@@ -165,7 +165,8 @@ pixels. Com shift12, o teste só foi calculado para a solução final (---).
   \item \textbf{MLP.} A normalização é essencial (sem ela, a validação cai para menos de 50\%), a taxa de
         aprendizado $10^{-2}$ com Adam impede o treino, e tanh e sigmóide aprendem pior que ReLU. O SGD com
         momentum foi a melhor MLP (\valMlpMelhor{}). Dropout sozinho reduz a diferença entre treino e validação,
-        mas perde acurácia; com BatchNorm, a acurácia volta e a diferença cai para cerca de 3 pontos.
+        mas perde acurácia. Ao adicionar BatchNorm, a validação sobe para \valMlpBnDropout{} e a diferença
+        fica em \difMlpBnDropout{} pontos percentuais.
   \item \textbf{CNN.} Data augmentation, weight decay, 30 épocas, label smoothing, a terceira convolução por bloco
         e o cutout melhoraram a validação isoladamente, e a \texttt{cnn\_best} junta as seis. Filtros mais largos
         (4 vezes os parâmetros) pioraram e ficaram de fora.
@@ -206,7 +207,8 @@ $^b$ No treino em lote, a loss e a acurácia de treino são medidas numa amostra
 
 \paragraph{Overfitting, underfitting e instabilidade.} O linear tem underfitting
 (\treinoLinear{} de treino e \valLinear{} de validação). A MLP baseline tem overfitting forte (\treinoMlp{} de
-treino contra \valMlp{} de validação), que Dropout e BatchNorm reduzem (para cerca de 3 pontos), mas sem que a validação passe de 87\%. A CNN sem augment também tem
+treino contra \valMlp{} de validação). Com Dropout e BatchNorm, a diferença cai para \difMlpBnDropout{} pontos
+percentuais, com \valMlpBnDropout{} de validação. A CNN sem augment também tem
 overfitting (\treinoCnn{} contra \valCnn{}), e a regularização da \texttt{cnn\_best} reduz essa diferença. A
 única instabilidade séria foi a MLP com Adam e taxa de aprendizado $10^{-2}$: a loss fica parada em 2,24 desde a
 primeira época e a acurácia em cerca de 20\% (Tabela~\ref{tab:outros}). Com SGD e a mesma taxa, o treino converge.
