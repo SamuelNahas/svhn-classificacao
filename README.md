@@ -1,14 +1,43 @@
-# Classificação de Dígitos — SVHN
+<h1 align="center">🔢 Classificação de Dígitos — SVHN</h1>
 
-Trabalho de Redes Neurais (Samuel, Wilker e Bernardo): classificador linear, MLP, CNN e experimentos
-de melhoria no dataset [SVHN](https://pytorch.org/vision/stable/generated/torchvision.datasets.SVHN.html), em PyTorch.
+<p align="center">
+  <b>Do classificador linear a um ensemble de 20 CNNs</b>: reconhecimento de dígitos em fotos de fachadas (Street View House Numbers) com PyTorch.<br>
+  Trabalho de Redes Neurais — UFMS · Samuel, Wilker e Bernardo.
+</p>
 
-Os termos usados no projeto estão em [GLOSSARY.md](GLOSSARY.md).
+<p align="center">
+  <a href="https://github.com/SamuelNahas/svhn-classificacao/actions/workflows/ci.yml"><img src="https://github.com/SamuelNahas/svhn-classificacao/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch">
+  <img src="https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white" alt="Jupyter">
+  <img src="https://img.shields.io/badge/NVIDIA_DGX_Spark-76B900?logo=nvidia&logoColor=white" alt="NVIDIA DGX Spark">
+  <img src="https://img.shields.io/badge/acur%C3%A1cia_de_teste-97%2C89%25-brightgreen" alt="Acurácia de teste 97,89%">
+  <a href="relatorio/relatorio.pdf"><img src="https://img.shields.io/badge/relat%C3%B3rio-PDF-blue" alt="Relatório PDF"></a>
+</p>
 
-**Resultado:** a predição final é um **ensemble de 20 `cnn_best` de 60 épocas com TTA** (pt4, nas DGX Spark),
-com **97,52% de acurácia de validação e 97,89% de teste**. O ensemble anterior, de 5 `cnn_best` com TTA, tinha
-97,31% e 97,63%, e um único `cnn_best` tem 96,68% e 97,13%. As 203.856 predições do conjunto adicional estão em
-[`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt).
+<p align="center">
+  <img src="results/comparacao_validacao.png" width="85%" alt="Acurácia de validação por época: linear, MLPs e CNNs">
+</p>
+
+## ✨ Destaques
+
+| Modelo | Validação | Teste |
+|---|---|---|
+| Classificador linear | 30,29% | 25,30% |
+| MLP (melhor: `mlp_sgd_momentum`) | 86,88% | 84,24% |
+| `cnn_best` (1 modelo) | 96,68% | 97,13% |
+| Ensemble de 5 CNNs + TTA | 97,31% | 97,63% |
+| **Ensemble de 20 CNNs de 60 épocas + TTA** | **97,52%** | **97,89%** |
+
+- **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — o teste é lido uma única vez com a solução fechada.
+- **119 treinos em duas NVIDIA DGX Spark**, com plano registrado antes de rodar ([`dgx/PLANO.md`](dgx/PLANO.md)) para evitar ajuste ao acaso.
+- **Reprodutível**: semente fixa, resultados e pesos versionados como cache — o notebook inteiro roda em minutos — e **CI** que executa o notebook em modo de teste a cada PR.
+- **Relatório em LaTeX** com tabelas e figuras geradas automaticamente a partir de `results/`.
+
+A predição final é o ensemble de 20 `cnn_best` de 60 épocas com TTA; as 203.856 predições do conjunto adicional
+estão em [`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt). Os termos usados no projeto
+estão em [GLOSSARY.md](GLOSSARY.md).
+
+---
 
 ## Estrutura do repositório
 
