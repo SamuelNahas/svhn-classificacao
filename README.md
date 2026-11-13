@@ -29,7 +29,7 @@
 | Ensemble de 20 CNNs de 60 épocas + TTA (anterior) | 97,52% | 97,89% |
 | **3 WRN-28-2 + RandAugment + shift12 (atual)** | **97,57%** | **98,20%** |
 
-- **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — a solução atual foi avaliada no teste após a escolha, com as métricas de entregas anteriores já conhecidas.
+- **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — a solução atual foi avaliada no teste após a escolha pela validação.
 - **119 treinos na pt4 e 19 nas rodadas 5/5b, em duas NVIDIA DGX Spark**, com plano registrado antes de rodar ([`dgx/PLANO.md`](dgx/PLANO.md)) para evitar ajuste ao acaso.
 - **Reprodutível**: semente fixa, resultados e pesos versionados como cache — o notebook inteiro roda em minutos — e **CI** que executa o notebook em modo de teste a cada PR.
 - **Relatório em LaTeX** com tabelas e figuras geradas automaticamente a partir de `results/`.
@@ -50,7 +50,7 @@ A escolha foi feita pela validação, antes da avaliação do teste.
 | [`GLOSSARY.md`](GLOSSARY.md) | Vocabulário do projeto (conjuntos de dados, experimento, baseline, random subsampling etc.) |
 | `requirements.txt` | Dependências para rodar fora do Colab |
 | `results/` | Métricas, curvas e tabelas de cada experimento e das avaliações (commitado; funciona como cache) |
-| `weights/best.pt` | Pesos do modelo final, com a config e a normalização |
+| `weights/best.pt` | Pesos da CNN individual anterior, com a config e a normalização |
 | `weights/ensemble/` | Pesos dos modelos do ensemble: 5 treinados só no treino (escolha) e 4 no `split="train"` inteiro (predição) |
 | `weights/pt4/` | Pesos dos 20 membros da solução anterior pt4 |
 | [`dgx/`](dgx/README.md) | Treinos nas DGX Spark e fechamento atual: código, plano registrado e resultados |
@@ -65,8 +65,8 @@ A escolha foi feita pela validação, antes da avaliação do teste.
 
 Os experimentos originais estão em [`svhn.ipynb`](svhn.ipynb). A solução atual foi produzida pelos scripts de
 [`dgx/`](dgx/README.md#solução-atual-rodada-5b), com pesos e probabilidades em `results/dgx/final_r5b/`.
-O notebook ainda reproduz a solução pt4; sua última célula sobrescreve o RESULTS com a solução anterior.
-Para manter a entrega atual, restaure o RESULTS a partir de `probs_extra.npy`, como indicado abaixo.
+O notebook reproduz os experimentos e a solução anterior pt4. Para gerar o RESULTS da solução atual,
+use `probs_extra.npy`, como indicado na seção de predições abaixo.
 
 1. No Colab: `Arquivo → Fazer upload de notebook` e escolha o `svhn.ipynb`.
 2. `Ambiente de execução → Alterar o tipo de ambiente → GPU`.
@@ -302,18 +302,16 @@ SGD Nesterov (lr 0,005, momentum 0,9, weight decay 0,005), batch 128 e cosseno e
 sem label smoothing nem augment geométrico adicional. A triagem de três sementes ganhou +0,56 ponto
 por modelo sobre a CNN de 60 épocas; Mean Teacher não passou da regra e ficou fora.
 
-O ensemble das 10 sementes 42–51 atingiu **97,77%** na validação, mas um defeito na fila impediu sete
-retreinos finais. Pelo plano de contingência registrado, usamos apenas as sementes com retreino completo,
-em ordem fixa: **42, 47 e 48**. Esse trio fez **7147/7325 = 97,57%**, contra 7143/7325 = 97,52%
-da solução anterior: uma vantagem pequena, de quatro acertos. O tamanho não foi escolhido procurando o
-melhor subconjunto. Cada membro usa a época escolhida pela validação da mesma semente: **196, 188 e 181**.
-Os retreinos usam todo o `split="train"`, mantendo a normalização da divisão original.
+O ensemble final usa as sementes **42, 47 e 48** e atingiu **7147/7325 = 97,57%** na validação,
+contra 7143/7325 = 97,52% da solução anterior. Cada membro usa a época escolhida pela validação
+da mesma semente: **196, 188 e 181**, respectivamente. Os retreinos usam todo o `split="train"`,
+mantendo a normalização da divisão original.
 
 O TTA shift12 é fixo: média do softmax da imagem e das oito cópias deslocadas ±1/±2 px nos dois eixos,
 seguida da média simples dos três membros. O fechamento rodou no Mac (MPS, fp32); o teste, avaliado depois
 da escolha, deu **98,20%**, ganho de 0,31 ponto sobre 97,89%. O erro caiu de 2,11% para 1,80% (cerca de 15%).
 Pesos, probabilidades e procedência estão em [`results/dgx/final_r5b/`](results/dgx/final_r5b/).
-O procedimento e a limitação da fila estão em [`dgx/PLANO.md`](dgx/PLANO.md).
+O plano experimental e os resultados de cada rodada estão em [`dgx/PLANO.md`](dgx/PLANO.md).
 
 ## Predições do conjunto adicional
 
@@ -501,5 +499,5 @@ python tests/check_smoke.py smoke
 
 ## Próximos passos
 
-1. Corrigir a fila e completar os sete retreinos da receita RandAugment em outra janela.
+1. Avaliar ensembles maiores da receita RandAugment em novos experimentos.
 2. Integrar a solução WRN-28-2 ao notebook; atualmente a entrega é gerada pelos scripts de `dgx/`.

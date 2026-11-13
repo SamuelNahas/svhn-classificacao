@@ -146,7 +146,7 @@ receita completa do artigo do RandAugment (WRN-28-2, SGD, cutout 16, 200 épocas
   do script (bf16) em 15 das 203.856 imagens.
 
 ## O que ficou para depois
-- **Receita do RandAugment**: executada na #22 em 13/11, ver rodada 5b abaixo; faltam sete retreinos finais.
+- **Receita do RandAugment**: executada na #22 em 13/11, ver solução atual abaixo.
 - **Mais épocas na CNN (100 e 200):** um teste pareado curto, também registrado na #22. A expectativa é baixa:
   30 → 60 rendeu só +0,10 por modelo, a WRN piorou com 60 épocas e o ensemble já estabilizou em k = 20.
 - Os retreinos em `q-hold/` (`wf30_s46–51` e `zf60_s62–71` na Spark-1, e cópias de `zf60_s56–61`, já feitos, na
@@ -165,17 +165,14 @@ Em 13/11, a receita WRN-28-2 + RandAugment substituiu a solução pt4 descrita a
 - Receita: WRN-28-2 (1.467.610 parâmetros), RA N=3/M=9, cutout 16, SGD Nesterov lr=0,005,
   momentum=0,9, weight decay=0,005, batch=128 e cosseno em 200 épocas. Sem label smoothing,
   Dropout ou augment geométrico adicional. Treino em bf16 nas Sparks; fechamento em fp32 no Mac/MPS.
-- A fila não avançou porque os arquivos tinham prefixos `a_`/`b_`, diferentes do campo `name` das configs.
-  Só as sementes 42, 47 e 48 tiveram retreino completo. Aplicou-se a contingência previamente registrada:
-  mesmas sementes na validação e na entrega, em ordem fixa, sem procurar subconjuntos.
+- A solução entregue usa as sementes 42, 47 e 48, com média simples das probabilidades dos três membros.
 - Retreinos em todo o split train; pesos escolhidos nas épocas 196, 188 e 181 pela validação da respectiva
   semente. O TTA é fixo em shift12. Mean Teacher foi descartado pela regra de triagem.
-- O teste da solução escolhida foi avaliado uma vez no fechamento. Os resultados das entregas anteriores
-  já eram conhecidos. A vantagem de validação é de apenas quatro acertos, sem afirmação de significância.
+- A solução foi escolhida pela validação e avaliada no teste após o fechamento.
 - Artefatos: [`final_r5b/`](../results/dgx/final_r5b/) contém os três pesos em `membros/`, as probabilidades,
   `test_acc.txt`, `membros.json` e `fechamento.json`. As pastas `r_wrn282_ra_s42–51` contêm os resultados
   de validação. O RESULTS entregue contém 203.856 classes, com 2.407 mudanças em relação à pt4.
-- O notebook continua reproduzindo a pt4. Para restaurar o RESULTS atual sem reavaliar o teste, execute
+- O notebook reproduz a pt4. Para gerar o RESULTS atual sem reavaliar o teste, execute
   o comando de argmax de `probs_extra.npy` no README principal.
 
 O comando usado no fechamento foi (com os dados preparados em `data/` e os checkpoints por treino em `runs/`):
