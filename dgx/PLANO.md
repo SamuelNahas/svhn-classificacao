@@ -129,3 +129,64 @@ ganhar, fecha-se com o ensemble atual.
 - Teste, lido uma única vez na solução fechada: **97,89%** (`results/dgx/final/test_acc.txt`).
 - Ficam para a #22: a receita completa do artigo do RandAugment (WRN-28-2, 200 épocas) e um teste pareado de
   mais épocas na CNN (100 e 200, sementes 42–44 contra `e60_val_s42–44`, com a mesma regra da rodada 4).
+
+## Rodada 5 — receita do RandAugment e Mean Teacher (13/11, 09:40, registrada antes de rodar; #22)
+Motivada pelas previsões feitas só com os resultados já existentes (sem treinar): o ensemble de 60 épocas tende a
+~97,49% com shift12 (ajuste erro(k) = e∞ + v/k em 200 ordens dos 30 membros), e 60 → 200 épocas na CNN deve render
+só +0,07 a +0,11 por modelo. Para passar desse teto, é preciso mudar o modelo ou a receita, não o k nem as épocas.
+Janela: até as 14:00, com os serviços das máquinas (vLLM, Postgres) no ar. Os treinos rodam com
+`--oom-score-adj=1000` e limite de memória por container, e no máximo 4 por máquina.
+
+| Nome | O que muda | Sementes |
+|---|---|---|
+| r_wrn282_ra | Receita do apêndice A.2.2 do RandAugment: WRN-28-2, RA N = 3, M = 9, cutout 16 depois do RA, sem augment geométrico, SGD Nesterov lr 0,005, wd 5e-3, batch 128, cosseno, 200 épocas, sem label smoothing | 42, 43, 44 |
+| mt1, mt10 | CNN de 60 épocas (e60) + Mean Teacher no próprio treino: professor = EMA 0,999 do aluno, consistência = MSE entre os softmax (soma nas classes) de duas versões aumentadas da mesma imagem, peso 1 ou 10 com rampa nas primeiras 12 épocas; avaliado o professor | 42, 43, 44 |
+
+- Comparação pareada com e60_val_s42–44 (96,60 / 96,96 / 96,81; média 96,79), mesma regra da rodada 4: ≥ +0,15 na
+  média e vitória na maioria dos pares. Para a receita do RandAugment, a triagem também exige que um modelo
+  sozinho, com shift12, passe de 97,5% em alguma semente: abaixo disso, não supera o ensemble atual.
+- Se algo passar, o ensemble de 20 fica para outra janela. Corte de tempo: se a época da WRN-28-2 passar de 70 s,
+  a receita do RandAugment é abortada (não termina até as 14:00).
+- O teste não é lido.
+
+### Resultado da rodada 5 (13/11, 10:25; teste não lido)
+| | s42 | s43 | s44 | Média | Δ vs e60 | Pares | Melhor shift12 |
+|---|---|---|---|---|---|---|---|
+| e60 (referência) | 96,60 | 96,96 | 96,81 | 96,79 | — | — | 96,98 |
+| **r_wrn282_ra** | **97,37** | **97,28** | **97,41** | **97,35** | **+0,56** | **3/3** | **97,52** |
+| mt1 | 96,83 | 96,81 | 97,08 | 96,91 | +0,12 | 2/3 | 97,15 |
+| mt10 | 96,83 | 96,83 | 96,93 | 96,86 | +0,08 | 2/3 | 96,98 |
+
+- **A receita do RandAugment passa a regra** (+0,56, 3/3 pares; s44 com shift12 = 97,52% > 97,5%). Loss de
+  validação 0,117, contra 0,195 da e60. A melhor época fica entre 194 e 196: ainda subia no fim.
+- O Mean Teacher não passa (+0,12 e +0,08), e fica fora.
+- Sanidade, sem ser critério: o ensemble dos 3 r_wrn282_ra com shift12 dá 97,57%, contra 97,31% dos 3 e60.
+- Pelo plano, o ensemble de 20 (com os retreinos finais) fica para outra janela.
+
+## Rodada 5b — ensemble de 10 da receita do RandAugment (13/11, 10:35, registrada antes dos resultados)
+- Membros: r_wrn282_ra, sementes 42–51 em ordem fixa (validação), e os retreinos rf_wrn282_ra_s42–51 em todo o
+  split train, cada um na época da melhor validação da mesma semente (pesos salvos das épocas 170 a 200).
+- Substitui a solução atual (k = 20 de CNN de 60 épocas, shift12, 97,52%) só se o ensemble de 10 com shift12
+  ganhar na validação. O TTA é fixo em shift12, sem escolha posterior.
+- **Corte às 13:50 (a GPU fica livre às 14:00):** os treinos não concluídos são parados. Se faltar algum
+  retreino final, o ensemble usa as sementes com retreino concluído, na ordem fixa, e a comparação na validação
+  é refeita com essas mesmas sementes.
+- O teste só é lido depois da escolha, uma vez.
+
+### Retomada da rodada 5b (13/11, 13:16)
+- Os 10 membros de validação terminaram. Com shift12: **7162/7325 = 97,7747%**, contra
+  **7143/7325 = 97,5154%** da CNN de 20 membros.
+- A fila ficou presa após a primeira tarefa de cada worker: `worker` verifica o diretório pelo nome
+  do arquivo (`a_...` / `b_...`), enquanto `run_config` grava pelo campo `name` (sem o prefixo).
+  Assim, os workers voltavam à tarefa concluída e não avançavam. Só há retreinos finais completos
+  das sementes **42, 47 e 48**. Os sete restantes não começaram.
+- As filas foram encerradas com `STOP`; os containers de treino saíram. O TTA terminou com código 0
+  nas duas máquinas. Os containers dos serviços de produção continuam no ar.
+- Aplicada a contingência às mesmas sementes, em ordem fixa: **7147/7325 = 97,5700%**.
+  O trio supera a referência por 4 acertos e é a solução escolhida para este fechamento.
+  É uma antecipação do fechamento de contingência: não há tempo para os sete retreinos antes do corte.
+- Épocas escolhidas exclusivamente pela validação: s42 = 196, s47 = 188, s48 = 181.
+  Fechamento iniciado no Mac com MPS, usando `final_ensemble.py`; saídas em
+  `results/dgx/final_r5b/`. Ao concluir, gera RESULTS candidato e registra a avaliação única do teste.
+
+- Fechamento r5b no Mac concluído: teste da solução escolhida = 98.2022%; 203856 predições no RESULTS candidato, 2407 diferentes do entregue. Artefatos em `results/dgx/final_r5b/`; arquivo entregue e notebook preservados.

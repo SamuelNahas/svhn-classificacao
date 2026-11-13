@@ -1,11 +1,14 @@
-# Bateria pt4 (#20) nas DGX Spark — concluída em 10/11/2026
+# Experimentos nas DGX Spark (#20 e #22)
+
+**Solução atual (13/11):** 3 WRN-28-2 + RandAugment + shift12, 97,57% de validação e 98,20% de teste.
+Detalhes em [Solução atual: rodada 5b](#solução-atual-rodada-5b). As seções anteriores a ela registram a pt4 de 10/11.
 
 Busca de mais acurácia com duas NVIDIA DGX Spark (GB10). O plano
 de cada rodada foi registrado em [`PLANO.md`](PLANO.md) **antes** de rodar, e a pesquisa bibliográfica que
 motivou a rodada 4 está em [`PESQUISA.md`](PESQUISA.md). Os resultados ficam em [`../results/dgx/`](../results/dgx/),
 uma pasta por experimento, e a tabela com todos os treinos está em [`resumo.csv`](../results/dgx/resumo.csv).
 
-**Resultado:** a nova solução é um **ensemble de 20 CNNs `cnn_best` de 60 épocas (sementes 42–61) com TTA
+**Resultado da pt4 (anterior):** a solução é um **ensemble de 20 CNNs `cnn_best` de 60 épocas (sementes 42–61) com TTA
 shift12**. Ela tem **97,52% de validação**, contra 97,31% da solução do PR #21, e **97,89% no teste**, contra
 97,63%. O teste foi lido uma única vez, já com a solução fechada. O erro de teste cai de 2,37% para 2,11%.
 
@@ -129,7 +132,7 @@ com o ensemble atual. A RandAugment foi a que chegou mais perto e teve a menor l
 receita completa do artigo do RandAugment (WRN-28-2, SGD, cutout 16, 200 épocas) é um experimento futuro na
 #22.
 
-## Solução final
+## Solução anterior pt4
 - **Membros:** a `cnn_best` com 60 épocas e as sementes 42 a 61, cada uma retreinada em todo o
   `split="train"` (`zf60_s<semente>`). Cada membro usa os pesos da época em que o membro de validação da mesma
   semente (`e60_val_s<semente>`) teve a melhor validação, entre as épocas 40 e 60. A procedência de cada membro
@@ -143,8 +146,46 @@ receita completa do artigo do RandAugment (WRN-28-2, SGD, cutout 16, 200 épocas
   do script (bf16) em 15 das 203.856 imagens.
 
 ## O que ficou para depois
-- **Receita do RandAugment** (WRN-28-2, 200 épocas): na #22, com a estimativa de custo.
+- **Receita do RandAugment**: executada na #22 em 13/11, ver rodada 5b abaixo; faltam sete retreinos finais.
 - **Mais épocas na CNN (100 e 200):** um teste pareado curto, também registrado na #22. A expectativa é baixa:
   30 → 60 rendeu só +0,10 por modelo, a WRN piorou com 60 épocas e o ensemble já estabilizou em k = 20.
 - Os retreinos em `q-hold/` (`wf30_s46–51` e `zf60_s62–71` na Spark-1, e cópias de `zf60_s56–61`, já feitos, na
   Spark-2) não são necessários para a solução escolhida e podem ser descartados.
+
+## Solução atual: rodada 5b
+
+Em 13/11, a receita WRN-28-2 + RandAugment substituiu a solução pt4 descrita acima.
+
+| Solução | Validação | Teste |
+|---|---|---|
+| CNN de 20 membros + shift12 (pt4, anterior) | 7143/7325 = 97,52% | 97,89% |
+| WRN-28-2 + RA, 10 membros (só validação) | 7162/7325 = 97,77% | não avaliado |
+| **WRN-28-2 + RA, 3 membros (entregue)** | **7147/7325 = 97,57%** | **98,20%** |
+
+- Receita: WRN-28-2 (1.467.610 parâmetros), RA N=3/M=9, cutout 16, SGD Nesterov lr=0,005,
+  momentum=0,9, weight decay=0,005, batch=128 e cosseno em 200 épocas. Sem label smoothing,
+  Dropout ou augment geométrico adicional. Treino em bf16 nas Sparks; fechamento em fp32 no Mac/MPS.
+- A fila não avançou porque os arquivos tinham prefixos `a_`/`b_`, diferentes do campo `name` das configs.
+  Só as sementes 42, 47 e 48 tiveram retreino completo. Aplicou-se a contingência previamente registrada:
+  mesmas sementes na validação e na entrega, em ordem fixa, sem procurar subconjuntos.
+- Retreinos em todo o split train; pesos escolhidos nas épocas 196, 188 e 181 pela validação da respectiva
+  semente. O TTA é fixo em shift12. Mean Teacher foi descartado pela regra de triagem.
+- O teste da solução escolhida foi avaliado uma vez no fechamento. Os resultados das entregas anteriores
+  já eram conhecidos. A vantagem de validação é de apenas quatro acertos, sem afirmação de significância.
+- Artefatos: [`final_r5b/`](../results/dgx/final_r5b/) contém os três pesos em `membros/`, as probabilidades,
+  `test_acc.txt`, `membros.json` e `fechamento.json`. As pastas `r_wrn282_ra_s42–51` contêm os resultados
+  de validação. O RESULTS entregue contém 203.856 classes, com 2.407 mudanças em relação à pt4.
+- O notebook continua reproduzindo a pt4. Para restaurar o RESULTS atual sem reavaliar o teste, execute
+  o comando de argmax de `probs_extra.npy` no README principal.
+
+O comando usado no fechamento foi (com os dados preparados em `data/` e os checkpoints por treino em `runs/`):
+
+```bash
+SVHN_DATA=data/svhn.npz python dgx/final_ensemble.py \
+  --runs runs --extra data/adicional.npy --out final_r5b \
+  --seeds 42 47 48 --val r_wrn282_ra --final rf_wrn282_ra --epochs 200
+```
+
+`svhn.npz` contém `x_train_full`, `y_train_full`, `x_test`, `y_test` e `perm42` (permutação PyTorch
+com semente 42). Imagens uint8 NCHW, rótulos 0–9; `adicional.npy` usa a ordem numérica dos nomes das imagens.
+Os pesos empacotados da entrega estão em `final_r5b/membros/`; não são os checkpoints brutos usados por esse comando.
