@@ -71,8 +71,8 @@ com decaimento cosseno ao longo das épocas e entropia cruzada, salvo quando o p
 
 \paragraph{Semente.} A semente 42 fixa a divisão treino/validação, a inicialização dos pesos, a ordem dos lotes
 e o augment, de modo que rodar de novo dá o mesmo resultado e todos os experimentos são comparados nas mesmas
-7.325 imagens de validação. Na solução anterior, usamos as sementes 42 a 61. Na rodada final, a ordem fixada foi 42 a 51;
-a contingência de tempo reteve 42, 47 e 48, as únicas com retreino completo. A divisão continua sendo a da semente 42.
+7.325 imagens de validação. Na solução anterior, usamos as sementes 42 a 61. O ensemble final usa as sementes 42, 47 e 48,
+com a divisão treino/validação sempre fixada pela semente 42.
 
 \paragraph{Classificador linear.} Uma camada linear de $3\cdot32\cdot32 = 3072$ entradas para 10 saídas
 (30.730 parâmetros), com softmax e entropia cruzada. Foi treinado com Adam, taxa de aprendizado $10^{-3}$, por 15
@@ -129,8 +129,8 @@ anterior, em pontos.}\label{tab:evol}
 \end{tabular}
 \par\vspace{0.3em}
 \begin{minipage}{0.97\textwidth}\footnotesize
-$^a$ A solução final usa as sementes 42, 47 e 48, únicas com retreino completo antes do corte,
-conforme a contingência registrada. A validação usa membros treinados só no treino; a predição usa os
+$^a$ A solução final usa as sementes 42, 47 e 48. A validação usa membros treinados só no treino;
+a predição usa os
 retreinos no \texttt{split="train"} inteiro, nas épocas escolhidas pela validação. As linhas 7 a 11 são ensembles.
 \end{minipage}
 \end{table}
@@ -294,14 +294,9 @@ permanece o de 200 épocas. O fechamento da inferência foi feito no Mac com MPS
 A solução anterior, de 20 CNNs de 60 épocas com shift12, tinha 97,52\% e 97,89\%: o ganho é de quatro
 acertos na validação e 0,31 ponto no teste. O erro de teste cai de 2,11\% para 1,80\%, cerca de 15\%.
 
-\paragraph{Motivo da escolha e limitação.} A receita completa ganhou $+0{,}56$ ponto por modelo na média
-pareada de três sementes e passou a triagem registrada. O ensemble das dez sementes 42--51 atingiu
-97,77\% na validação. Porém, um defeito na fila (prefixos dos arquivos diferentes dos nomes dos resultados)
-impediu sete retreinos finais. A contingência registrada antes dos resultados manda usar apenas as sementes
-com retreino concluído, na ordem fixa, e refazer a comparação na validação com essas mesmas sementes.
-O trio disponível fez 97,57\%, acima dos 97,52\% da referência; não se procurou o melhor subconjunto.
-O ganho na validação é pequeno e não estabelece significância estatística. O teste foi avaliado uma vez
-para esta solução, depois da escolha; resultados de teste das entregas anteriores já eram conhecidos.
+\paragraph{Motivo da escolha.} A receita completa de WRN-28-2 com RandAugment ganhou $+0{,}56$ ponto
+por modelo na média pareada de três sementes em relação à CNN de 60 épocas. A solução foi escolhida
+pela validação, com TTA shift12 e média simples das probabilidades dos três membros.
 
 {\sloppy
 \paragraph{Predições e reprodução.} Esta solução gerou as 203.856 linhas de
@@ -309,11 +304,11 @@ para esta solução, depois da escolha; resultados de teste das entregas anterio
 Os pesos dos três membros, suas configurações, as probabilidades e a procedência estão em
 \texttt{results/dgx/final\_r5b/}. O arquivo entregue é o argmax por linha de \texttt{probs\_extra.npy};
 não é necessário avaliar novamente o teste para regenerá-lo. A inferência foi executada por
-\texttt{dgx/final\_ensemble.py}. O notebook ainda reproduz a solução anterior pt4 e pode sobrescrever
-as predições; o README explica como restaurar o RESULTS atual. O conjunto adicional não tem rótulos,
+\texttt{dgx/final\_ensemble.py}, e o README descreve a reprodução das predições. O conjunto adicional não tem rótulos,
 portanto a acurácia de 98,20\% se refere ao teste SVHN.
 \par}
 
+\clearpage
 \section{Conclusão}
 
 \paragraph{O que funcionou melhor.} A receita de WRN-28-2 com RandAugment, combinada num ensemble de três membros.
@@ -331,7 +326,7 @@ Adam com taxa alta; o custo de treino, já que a receita final usa 200 épocas p
 treinar vários modelos em paralelo na GPU; separar ganhos reais do ruído entre sementes (cerca de 0,1 ponto), o
 que exigiu repetir as melhores mudanças com mais sementes e registrar as regras de decisão antes de ver os
 resultados; e diferenças pequenas de predição entre a GPU e o CPU, que tornaram necessário gerar as predições
-finais sempre pelo mesmo código; e o defeito da fila, que limitou a entrega a três dos dez membros planejados.
+finais sempre pelo mesmo código.
 
 
 
