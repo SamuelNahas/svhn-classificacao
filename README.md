@@ -1,7 +1,7 @@
 <h1 align="center">🔢 Classificação de Dígitos — SVHN</h1>
 
 <p align="center">
-  <b>Do classificador linear a um ensemble de 20 CNNs</b>: reconhecimento de dígitos em fotos de fachadas (Street View House Numbers) com PyTorch.<br>
+  <b>Do classificador linear a um ensemble de Wide ResNets</b>: reconhecimento de dígitos em fotos de fachadas (Street View House Numbers) com PyTorch.<br>
   Trabalho de Redes Neurais — UFMS · Samuel, Wilker e Bernardo.
 </p>
 
@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch">
   <img src="https://img.shields.io/badge/Jupyter-F37626?logo=jupyter&logoColor=white" alt="Jupyter">
   <img src="https://img.shields.io/badge/NVIDIA_DGX_Spark-76B900?logo=nvidia&logoColor=white" alt="NVIDIA DGX Spark">
-  <img src="https://img.shields.io/badge/acur%C3%A1cia_de_teste-97%2C89%25-brightgreen" alt="Acurácia de teste 97,89%">
+  <img src="https://img.shields.io/badge/acur%C3%A1cia_de_teste-98%2C20%25-brightgreen" alt="Acurácia de teste 98,20%">
   <a href="relatorio/relatorio.pdf"><img src="https://img.shields.io/badge/relat%C3%B3rio-PDF-blue" alt="Relatório PDF"></a>
 </p>
 
@@ -26,16 +26,19 @@
 | MLP (melhor: `mlp_sgd_momentum`) | 86,88% | 84,24% |
 | `cnn_best` (1 modelo) | 96,68% | 97,13% |
 | Ensemble de 5 CNNs + TTA | 97,31% | 97,63% |
-| **Ensemble de 20 CNNs de 60 épocas + TTA** | **97,52%** | **97,89%** |
+| Ensemble de 20 CNNs de 60 épocas + TTA (anterior) | 97,52% | 97,89% |
+| **3 WRN-28-2 + RandAugment + shift12 (atual)** | **97,57%** | **98,20%** |
 
-- **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — o teste é lido uma única vez com a solução fechada.
-- **119 treinos em duas NVIDIA DGX Spark**, com plano registrado antes de rodar ([`dgx/PLANO.md`](dgx/PLANO.md)) para evitar ajuste ao acaso.
+- **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — a solução atual foi avaliada no teste após a escolha pela validação.
+- **119 treinos na pt4 e 19 nas rodadas 5/5b, em duas NVIDIA DGX Spark**, com plano registrado antes de rodar ([`dgx/PLANO.md`](dgx/PLANO.md)) para evitar ajuste ao acaso.
 - **Reprodutível**: semente fixa, resultados e pesos versionados como cache — o notebook inteiro roda em minutos — e **CI** que executa o notebook em modo de teste a cada PR.
 - **Relatório em LaTeX** com tabelas e figuras geradas automaticamente a partir de `results/`.
 
-A predição final é o ensemble de 20 `cnn_best` de 60 épocas com TTA; as 203.856 predições do conjunto adicional
-estão em [`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt). Os termos usados no projeto
-estão em [GLOSSARY.md](GLOSSARY.md).
+**Resultado:** a predição final é um **ensemble de 3 WRN-28-2 com RandAugment e TTA shift12**
+(sementes 42, 47 e 48), com **97,57% de validação e 98,20% de teste**. A solução anterior, de 20 CNNs de
+60 épocas, tinha 97,52% e 97,89%. As 203.856 predições estão em
+[`SAMUEL_WILKER_BERNARDO_RESULTS.txt`](SAMUEL_WILKER_BERNARDO_RESULTS.txt); 2.407 mudaram em relação à entrega anterior.
+A escolha foi feita pela validação, antes da avaliação do teste.
 
 ---
 
@@ -43,15 +46,15 @@ estão em [GLOSSARY.md](GLOSSARY.md).
 
 | Caminho | Conteúdo |
 |---|---|
-| [`svhn.ipynb`](svhn.ipynb) | Todo o código: dados, modelos, experimentos, avaliações, modelo final e predições |
+| [`svhn.ipynb`](svhn.ipynb) | Experimentos originais e solução anterior pt4; a solução atual usa os scripts de `dgx/` |
 | [`GLOSSARY.md`](GLOSSARY.md) | Vocabulário do projeto (conjuntos de dados, experimento, baseline, random subsampling etc.) |
 | `requirements.txt` | Dependências para rodar fora do Colab |
 | `results/` | Métricas, curvas e tabelas de cada experimento e das avaliações (commitado; funciona como cache) |
-| `weights/best.pt` | Pesos do modelo final, com a config e a normalização |
+| `weights/best.pt` | Pesos da CNN individual anterior, com a config e a normalização |
 | `weights/ensemble/` | Pesos dos modelos do ensemble: 5 treinados só no treino (escolha) e 4 no `split="train"` inteiro (predição) |
-| `weights/pt4/` | Pesos dos 20 membros da solução final pt4, retreinados no `split="train"` inteiro |
-| [`dgx/`](dgx/README.md) | Bateria pt4 nas DGX Spark: código, plano registrado, pesquisa bibliográfica e resultados |
-| `results/dgx/` | Um diretório por treino da pt4, as curvas de ensemble e a solução final (`final/`) |
+| `weights/pt4/` | Pesos dos 20 membros da solução anterior pt4 |
+| [`dgx/`](dgx/README.md) | Treinos nas DGX Spark e fechamento atual: código, plano registrado e resultados |
+| `results/dgx/` | Resultados por treino; solução anterior em `final/` e atual em `final_r5b/` (inclui os 3 pesos) |
 | `SAMUEL_WILKER_BERNARDO_RESULTS.txt` | Predições do conjunto adicional, uma por linha |
 | [`relatorio/`](relatorio/) | Relatório em LaTeX (`relatorio.tex`), o PDF compilado e `gerar.py`, que gera as tabelas e figuras a partir de `results/` |
 | [`tests/check_smoke.py`](tests/check_smoke.py) | Confere as saídas do modo de teste |
@@ -60,7 +63,10 @@ estão em [GLOSSARY.md](GLOSSARY.md).
 
 ## Como rodar
 
-O código está todo em [`svhn.ipynb`](svhn.ipynb).
+Os experimentos originais estão em [`svhn.ipynb`](svhn.ipynb). A solução atual foi produzida pelos scripts de
+[`dgx/`](dgx/README.md#solução-atual-rodada-5b), com pesos e probabilidades em `results/dgx/final_r5b/`.
+O notebook reproduz os experimentos e a solução anterior pt4. Para gerar o RESULTS da solução atual,
+use `probs_extra.npy`, como indicado na seção de predições abaixo.
 
 1. No Colab: `Arquivo → Fazer upload de notebook` e escolha o `svhn.ipynb`.
 2. `Ambiente de execução → Alterar o tipo de ambiente → GPU`.
@@ -209,7 +215,7 @@ melhoraram a validação em relação à `cnn_augment`: `cnn_wd`, `cnn_30ep`, `c
   | `cnn_deep` | 95,76% ± 0,19 | 96,45% ± 0,12 |
   | `cnn_30ep` | 95,78% ± 0,14 | 96,35% ± 0,07 |
 
-- **Análise de erros do modelo final** (Lecture 11): matriz de confusão no teste, precisão/recall/F1 por dígito e
+- **Análise de erros da solução anterior pt4** (Lecture 11): matriz de confusão no teste, precisão/recall/F1 por dígito e
   exemplos de erros, feitos com o método das predições (o ensemble de 20 da pt4 + TTA shift12). **Resultado:** F1
   entre 0,971 (dígito 9) e 0,986 (dígito 2); as confusões mais comuns são 7 → 1 (40 imagens), 3 → 9 (32) e 4 → 1 (21).
 
@@ -222,11 +228,11 @@ Saídas em `results/`:
 - `taxas_aprendizado.png`: loss de treino e validação com lr 1e-4, 1e-3 e 1e-2.
 - `knn.csv`: acurácia de validação por K e de teste no K escolhido.
 - `subsampling.csv` e `subsampling/`: média ± desvio dos 3 melhores em 5 divisões.
-- `confusao.png`, `metricas_por_classe.csv` e `erros.png`: análise de erros do modelo final.
+- `confusao.png`, `metricas_por_classe.csv` e `erros.png`: análise de erros da solução anterior pt4.
 - `tta_ensemble.csv` e `ensemble.png`: validação e teste do ensemble de 1 a 5 modelos, com e sem TTA.
 - `final_predicao.json`: método usado nas predições e a sua acurácia de teste.
 
-## Modelo final
+## Modelo individual e soluções anteriores
 
 No fim do notebook, o experimento com a **maior acurácia de validação** é retreinado com todo o
 `split="train"` (treino + validação), com a mesma config e semente, parando na época da sua melhor validação
@@ -270,7 +276,7 @@ Escolhido: **ensemble de 5 + TTA**. Os 5 modelos são retreinados em todo o `spl
 `weights/best.pt`; os outros ficam em `weights/ensemble/`), e o ensemble final tem **97,63% no teste**, contra
 96,85% do modelo final anterior: o erro cai cerca de 25%.
 
-### Solução final pt4: ensemble de 20 CNNs de 60 épocas (#20)
+### Solução anterior pt4: ensemble de 20 CNNs de 60 épocas (#20)
 
 A bateria pt4 rodou 119 treinos nas duas DGX Spark, com o mesmo protocolo do notebook, e tudo foi escolhido pela
 validação. Os detalhes estão em [`dgx/README.md`](dgx/README.md), e o plano de cada rodada, registrado antes de
@@ -289,16 +295,36 @@ semente, e estão em `weights/pt4/`. No teste, lido uma única vez com a soluç�
 **97,89%**, contra 97,63% do ensemble de 5: o erro cai de 2,37% para 2,11%. Quando `weights/pt4/` existe, a
 seção "Solução final pt4" do notebook substitui o ensemble de 5 na análise de erros e nas predições.
 
+## Solução atual: WRN-28-2 + RandAugment (rodada 5b, #22)
+
+A receita usa WRN-28-2 (1.467.610 parâmetros por membro), RandAugment N=3/M=9, cutout 16×16,
+SGD Nesterov (lr 0,005, momentum 0,9, weight decay 0,005), batch 128 e cosseno em 200 épocas,
+sem label smoothing nem augment geométrico adicional. A triagem de três sementes ganhou +0,56 ponto
+por modelo sobre a CNN de 60 épocas; Mean Teacher não passou da regra e ficou fora.
+
+O ensemble final usa as sementes **42, 47 e 48** e atingiu **7147/7325 = 97,57%** na validação,
+contra 7143/7325 = 97,52% da solução anterior. Cada membro usa a época escolhida pela validação
+da mesma semente: **196, 188 e 181**, respectivamente. Os retreinos usam todo o `split="train"`,
+mantendo a normalização da divisão original.
+
+O TTA shift12 é fixo: média do softmax da imagem e das oito cópias deslocadas ±1/±2 px nos dois eixos,
+seguida da média simples dos três membros. O fechamento rodou no Mac (MPS, fp32); o teste, avaliado depois
+da escolha, deu **98,20%**, ganho de 0,31 ponto sobre 97,89%. O erro caiu de 2,11% para 1,80% (cerca de 15%).
+Pesos, probabilidades e procedência estão em [`results/dgx/final_r5b/`](results/dgx/final_r5b/).
+O plano experimental e os resultados de cada rodada estão em [`dgx/PLANO.md`](dgx/PLANO.md).
+
 ## Predições do conjunto adicional
 
-Depois do modelo final, o notebook classifica as imagens do professor e grava
-`SAMUEL_WILKER_BERNARDO_RESULTS.txt` com o método escolhido acima (ensemble de 20 da pt4 + TTA shift12): uma predição (0 a 9) por linha, na ordem numérica do nome dos arquivos.
-Antes de rodar, coloque as imagens (`000000.png`, `000001.png`, ...) em `data/adicional/`: no Colab, faça
-upload e descompacte lá; localmente, basta um link, por exemplo `ln -s ~/Downloads/images data/adicional`.
+O arquivo `SAMUEL_WILKER_BERNARDO_RESULTS.txt` contém uma classe de 0 a 9 por linha, na ordem numérica
+das 203.856 imagens do professor. Foi gerado com o trio WRN-28-2 acima; **2.407 predições (1,18%)**
+mudaram em relação à CNN de 20 membros. O conjunto adicional não tem rótulos: 98,20% é a acurácia no
+teste SVHN, não nesse conjunto.
 
-O conjunto tem 203.856 imagens PNG 32×32, sem rótulos, e as classes previstas ficam bem equilibradas (entre
-20.106 e 21.271 imagens por dígito). Sem rótulos não há acurácia; a melhor referência é o teste, 97,63%. Em
-relação às predições do modelo final anterior, 3.253 imagens (1,6%) mudaram de classe.
+As predições entregues podem ser regeneradas sem inferência nem nova avaliação do teste:
+
+```bash
+.venv/bin/python -c 'import numpy as np; p=np.load("results/dgx/final_r5b/probs_extra.npy"); np.savetxt("SAMUEL_WILKER_BERNARDO_RESULTS.txt", p.argmax(1), fmt="%d")'
+```
 
 ## Experimentos extras (#14)
 
@@ -466,12 +492,12 @@ python tests/check_smoke.py smoke
 
 ## Entregáveis
 
-- [x] Código: `svhn.ipynb`
-- [x] Pesos: `weights/best.pt` e, para a solução final pt4, `weights/pt4/`
+- [x] Código: `svhn.ipynb` (experimentos e pt4), `dgx/svhn_dgx.py` e `dgx/final_ensemble.py` (solução atual)
+- [x] Pesos atuais: `results/dgx/final_r5b/membros/`; anteriores em `weights/`
 - [x] `SAMUEL_WILKER_BERNARDO_RESULTS.txt`
 - [x] Relatório em PDF: [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf)
 
 ## Próximos passos
 
-1. Experimentos futuros na #22: a receita completa do RandAugment (WRN-28-2, 200 épocas) e um teste curto de
-   mais épocas (100 e 200) na CNN.
+1. Avaliar ensembles maiores da receita RandAugment em novos experimentos.
+2. Integrar a solução WRN-28-2 ao notebook; atualmente a entrega é gerada pelos scripts de `dgx/`.

@@ -1,0 +1,36 @@
+{
+  "tta": "shift12",
+  "membros": [
+    {
+      "semente": 42,
+      "epoca": 196,
+      "origem": "rf_wrn282_ra_s42/final_ep196.pt",
+      "epoca_escolhida_por": "r_wrn282_ra_s42/summary.json"
+    },
+    {
+      "semente": 47,
+      "epoca": 188,
+      "origem": "rf_wrn282_ra_s47/final_ep188.pt",
+      "epoca_escolhida_por": "r_wrn282_ra_s47/summary.json"
+    },
+    {
+      "semente": 48,
+      "epoca": 181,
+      "origem": "rf_wrn282_ra_s48/final_ep181.pt",
+      "epoca_escolhida_por": "r_wrn282_ra_s48/summary.json"
+    }
+  ],
+  "env": {
+    "host": "Samuels-Air.clickti.com.br",
+    "gpu": "cpu",
+    "torch": "2.15.0",
+    "cudnn_ativo": true,
+    "train_eval_n": "todo",
+    "cuda": null,
+    "cudnn": null,
+    "python": "3.12.14",
+    "codigo_sha256": "533f03b6d14458f3",
+    "git": "?",
+    "dados_sha256": "?"
+  }
+}

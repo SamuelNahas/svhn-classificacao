@@ -32,7 +32,7 @@ from torch import nn
 from torch.optim.swa_utils import AveragedModel, get_ema_multi_avg_fn
 
 DATA = Path(os.environ.get("SVHN_DATA", "/w/data/svhn.npz"))
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 SEED = 42
 
 DEFAULTS = dict(  # padrões = cnn_best do notebook (#17), menos a arquitetura
@@ -40,6 +40,7 @@ DEFAULTS = dict(  # padrões = cnn_best do notebook (#17), menos a arquitetura
     weight_decay=0.05, label_smoothing=0.1, augment=True, geo=1.0, color=0.0, cutout=True, cutout_size=8,
     cutout_p=1.0, ema=0.0, amp="none", seed=SEED, split_seed=SEED, final=False, stop_epoch=None,
     policy=None, ra_n=2, ra_m=9,  # augment automático por imagem, na CPU (substitui o `augment` geométrico)
+    mt=0.0, mt_ramp=12,  # Mean Teacher: peso da consistência com o professor (EMA) e épocas de rampa; exige `ema`
 )
 
 
@@ -238,18 +239,30 @@ def train(cfg, run_dir):
             j = idx[i:i + cfg["batch"]]
             yield x_tr[j], y_tr[j]
 
+    def view(xraw):
+        xb = preprocess(xraw, mean, std, cfg, train=True)
+        if cfg["augment"]:
+            xb = augment(xb, cfg["geo"])
+        if cfg["cutout"]:
+            xb = cutout(xb, cfg["cutout_size"], cfg["cutout_p"])
+        return xb.contiguous(memory_format=torch.channels_last)
+
+    assert not cfg["mt"] or ema, "Mean Teacher precisa de `ema` (o professor)"
     for ep in range(start_ep, n_epochs + 1):
         t0 = time.time()
         model.train()
+        # rampa de Tarvainen e Valpola (2017): exp(-5(1 - t)^2) nas primeiras `mt_ramp` épocas
+        mt_w = cfg["mt"] * math.exp(-5 * (1 - min(1.0, (ep - 1) / cfg["mt_ramp"])) ** 2)
         for xraw, yb in batches():
-            xb = preprocess(xraw, mean, std, cfg, train=True)
-            if cfg["augment"]:
-                xb = augment(xb, cfg["geo"])
-            if cfg["cutout"]:
-                xb = cutout(xb, cfg["cutout_size"], cfg["cutout_p"])
+            xb = view(xraw)
             with autocast(cfg):
-                out = model(xb.contiguous(memory_format=torch.channels_last))
+                out = model(xb)
                 loss = F.cross_entropy(out.float(), yb, label_smoothing=cfg["label_smoothing"])
+            if cfg["mt"]:  # consistência com o professor numa segunda versão aumentada da mesma imagem
+                with torch.no_grad(), autocast(cfg):
+                    ema.module.eval()
+                    target = ema.module(view(xraw)).float().softmax(1)
+                loss = loss + mt_w * (out.float().softmax(1) - target).pow(2).sum(1).mean()
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()

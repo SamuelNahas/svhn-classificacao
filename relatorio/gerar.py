@@ -106,7 +106,16 @@ acc = {n: (f(r, "val_acc"), f(r, "test_acc")) for n, r in nb.items()}
 acc |= {n: (single(n)["val_acc"], single(n)["test_acc"]) for n in TRI}
 acc |= {lab: (m["val_acc"], m["test_acc"]) for lab, m in g.items()}
 acc |= ENS
-acc["final"] = (ENS["E10"][0], final["test_acc"])
+acc["pt4"] = (ENS["E10"][0], final["test_acc"])
+r5b = json.loads((DGX / "final_r5b" / "membros.json").read_text())
+r5b_seeds = [member["semente"] for member in r5b["membros"]]
+assert r5b_seeds == [42, 47, 48] and r5b["tta"] == "shift12"
+r5b_probs = np.mean([np.load(DGX / f"r_wrn282_ra_s{s}" / "probs_val_shift12.npy") for s in r5b_seeds], 0)
+r5b_labels = np.load(DGX / "val_labels.npy")
+r5b_val = float((r5b_probs.argmax(1) == r5b_labels).mean())
+r5b_test = float((DGX / "final_r5b" / "test_acc.txt").read_text())
+assert r5b_val > acc["pt4"][0]
+acc["final"] = (r5b_val, r5b_test)
 
 
 def res(name, base):
@@ -125,7 +134,8 @@ EVOL = [  # 9.2, Tabela 1: cada linha parte da anterior (nome, experimento, modi
     ("E2", "Ensemble de 5", "média de 5 \\texttt{cnn\\_best} (sementes 42--46)"),
     ("E4", "Ensemble de 5, 60 épocas", "cada membro treinado por 60 épocas em vez de 30"),
     ("E6", "Ensemble de 20, 60 épocas", "20 membros (sementes 42--61) em vez de 5"),
-    ("final", "\\textbf{Solução final}", "+ TTA shift12; membros retreinados no treino inteiro$^{a}$"),
+    ("pt4", "CNN de 20 + TTA", "+ TTA shift12; retreino no treino inteiro"),
+    ("final", "\\textbf{Solução final}", "3 WRN-28-2 + RandAugment + shift12$^{a}$"),
 ]
 lines, prev = [], None
 for i, (n, name, mod) in enumerate(EVOL, 1):
@@ -195,16 +205,20 @@ for n, name in TREINO:
                       pct(f(r, "test_acc")), f"{r['melhor_epoca']}/{r['epocas']}",
                       f"{100 * (f(r, 'train_acc') - f(r, 'val_acc')):.1f}".replace(".", ",")]))
 e = dg["e60_val_s42"]
-lines.append(row(["membro da solução final (s42)$^{b}$", num(float(e["train_loss"])), num(float(e["val_loss"])),
+lines.append(row(["CNN de 60 épocas (s42)$^{b}$", num(float(e["train_loss"])), num(float(e["val_loss"])),
                   pct(float(e["train_acc"])), pct(float(e["val_acc"])), pct(single("e60_val_s42")["test_acc"]),
                   f"{e['melhor_epoca']}/{e['epocas']}",
                   f"{100 * (float(e['train_acc']) - float(e['val_acc'])):.1f}".replace(".", ",")]))
+r = json.loads((DGX / "r_wrn282_ra_s42" / "summary.json").read_text())
+lines.append(row(["WRN-28-2 + RA (s42)$^{b}$", num(r["train_loss"]), num(r["val_loss"]),
+                  pct(r["train_acc"]), pct(r["val_acc"]), "---", f"{r['melhor_epoca']}/{r['epocas']}",
+                  num(100 * (r["train_acc"] - r["val_acc"]), nd=1)]))
 (OUT / "tabelas" / "treino.tex").write_text("\n".join(lines) + "\n")
 
 # números citados no texto: um \newcommand por valor, para o .tex nunca digitar números à mão
 mlp_bn_dropout = nb["mlp_bn_dropout"]
 cmd = {
-    "valFinal": pct(ENS["E10"][0]), "testeFinal": pct(final["test_acc"]),
+    "valFinal": pct(r5b_val), "testeFinal": pct(r5b_test),
     "valEnsCinco": pct(float(tta5["ensemble de 5 + TTA"]["val_acc"])),
     "testeEnsCinco": pct(json.loads(subprocess.run(  # solução do PR #21, retreinada; o notebook sobrescreve o arquivo
         ["git", "show", "75a5ec2:results/final_predicao.json"], cwd=ROOT, capture_output=True, text=True,
@@ -252,5 +266,8 @@ curves([("mlp_baseline (Adam)", h("mlp_baseline")), ("mlp_sgd_momentum", h("mlp_
        OUT / "figuras" / "mlp.pdf", "MLP: baseline × melhor MLP na validação")
 curves([("cnn_best (30 épocas)", h("cnn_best")),
         ("membro de 60 épocas (semente 42)", json.loads((DGX / "e60_val_s42" / "hist.json").read_text()))],
-       OUT / "figuras" / "cnn_best_e60.pdf", "CNN: cnn_best × membro da solução final")
+       OUT / "figuras" / "cnn_best_e60.pdf", "CNN: cnn_best × membro da solução anterior pt4")
+curves([("CNN de 60 épocas (s42)", json.loads((DGX / "e60_val_s42" / "hist.json").read_text())),
+        ("WRN-28-2 + RandAugment (s42)", json.loads((DGX / "r_wrn282_ra_s42" / "hist.json").read_text()))],
+       OUT / "figuras" / "cnn_wrn_ra.pdf", "Receita anterior × nova receita (semente 42)")
 print("tabelas e figuras geradas em", OUT)

@@ -1,0 +1,10 @@
+{
+  "seeds": [
+    42,
+    47,
+    48
+  ],
+  "test_acc": 0.982022,
+  "predictions": 203856,
+  "changed_vs_delivered": 2407
+}
