@@ -1,0 +1,10 @@
+1 & Classificador linear & camada linear 3072$\to$10, softmax & 30,29 & 25,30 & --- \\
+2 & MLP baseline & MLP 512-256, ReLU, Adam lr $10^{-3}$ & 86,25 & 82,88 & melhorou (+55,96) \\
+3 & MLP + melhoria & SGD com momentum 0,9 e lr $10^{-2}$ no lugar do Adam & 86,88 & 84,24 & melhorou (+0,63) \\
+4 & CNN & 3 blocos convolucionais (32/64/128 filtros) no lugar da MLP & 95,33 & 95,21 & melhorou (+8,45) \\
+5 & CNN + augment & data augmentation (rotação, escala e translação) & 95,59 & 96,05 & melhorou (+0,26) \\
+6 & \texttt{cnn\_best} & + weight decay, 30 épocas, label smoothing, 3 convoluções por bloco e cutout & 96,68 & 97,05 & melhorou (+1,09) \\
+7 & Ensemble de 5 & média de 5 \texttt{cnn\_best} (sementes 42--46) & 97,06 & 97,51 & melhorou (+0,38) \\
+8 & Ensemble de 5, 60 épocas & cada membro treinado por 60 épocas em vez de 30 & 97,39 & 97,71 & melhorou (+0,33) \\
+9 & Ensemble de 20, 60 épocas & 20 membros (sementes 42--61) em vez de 5 & 97,47 & 97,75 & melhorou (+0,08) \\
+10 & \textbf{Solução final} & + TTA shift12; membros retreinados no treino inteiro$^{a}$ & 97,52 & 97,89 & melhorou (+0,04) \\
