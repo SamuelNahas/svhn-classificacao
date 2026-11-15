@@ -341,7 +341,7 @@ def full(cfg):
 
 def run_config(cfg_path, runs):
     raw = json.loads(Path(cfg_path).read_text())
-    cfg, run_dir = full(raw), Path(runs) / raw["name"]
+    cfg, run_dir = full(raw), Path(runs) / raw.get("name", Path(cfg_path).resolve().parent.name)  # sem "name": a pasta do config
     saved = run_dir / "config.json"
     if saved.exists():
         assert json.loads(saved.read_text()) == cfg, f"{run_dir} já existe com outra config"

@@ -343,18 +343,22 @@ Também roda no Colab com GPU (\texttt{Executar tudo}). Os experimentos já conc
 não são retreinados; sem esse cache a bateria completa leva cerca de 3h30 num Mac M5. O notebook gera as curvas,
 as tabelas de \texttt{results/} e, ao final, as predições da solução anterior (pt4), \textbf{sobrescrevendo} o arquivo RESULTS; por isso, rode o passo~1 depois dele.
 
-\paragraph{3. Retreinar a solução final.} Um treino por semente, com a configuração de
-\path{rf_wrn282_ra_s<semente>/config.json}, em \path{results/dgx/} (200 épocas; a pasta
-\path{r_wrn282_ra_s<semente>} é a versão só no treino, usada para escolher a época):
+\paragraph{3. Retreinar a solução final} (exige GPU NVIDIA com CUDA). Cada semente precisa de dois treinos de 200
+épocas, com as configurações salvas em \path{results/dgx/<nome>/config.json}: \path{r_wrn282_ra_s<semente>} (só no
+treino, escolhe a época) e \path{rf_wrn282_ra_s<semente>} (no \texttt{split="train"} inteiro). Depois,
+\texttt{final\_ensemble.py} monta o ensemble e grava as predições em \path{final_r5b/}.
 \begin{verbatim}
-python dgx/svhn_dgx.py run --runs runs \
-  --config results/dgx/rf_wrn282_ra_s42/config.json
+python dgx/prepare_data.py           # gera data/svhn.npz e data/adicional.npy
+export SVHN_DATA=data/svhn.npz
+for s in 42 47 48; do for n in r_wrn282_ra rf_wrn282_ra; do
+  python dgx/svhn_dgx.py run --runs runs --config results/dgx/${n}_s$s/config.json
+done; done
 python dgx/final_ensemble.py --runs runs --extra data/adicional.npy \
   --out final_r5b --seeds 42 47 48 --val r_wrn282_ra \
   --final rf_wrn282_ra --epochs 200
 \end{verbatim}
-Antes, \texttt{python dgx/prepare\_data.py} gera \texttt{data/svhn.npz} e \texttt{data/adicional.npy}; use \texttt{export SVHN\_DATA=data/svhn.npz} nos dois comandos. Os treinos foram feitos
-em GPUs NVIDIA (bf16), então um retreino em outro hardware pode diferir por frações de ponto.
+Os treinos originais foram feitos em GPUs NVIDIA (bf16), então um retreino em outro hardware pode diferir por frações
+de ponto.
 
 \paragraph{Relatório.} \texttt{python relatorio/gerar.py} refaz as tabelas e figuras a partir de
 \texttt{results/}, e \texttt{tectonic relatorio/relatorio.tex} compila o PDF.
