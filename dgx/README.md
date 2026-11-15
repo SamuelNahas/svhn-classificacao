@@ -183,6 +183,6 @@ SVHN_DATA=data/svhn.npz python dgx/final_ensemble.py \
   --seeds 42 47 48 --val r_wrn282_ra --final rf_wrn282_ra --epochs 200
 ```
 
-`svhn.npz` contém `x_train_full`, `y_train_full`, `x_test`, `y_test` e `perm42` (permutação PyTorch
+`python dgx/prepare_data.py` gera os dois arquivos a partir de `data/`. O `svhn.npz` contém `x_train_full`, `y_train_full`, `x_test`, `y_test` e `perm42` (permutação PyTorch
 com semente 42). Imagens uint8 NCHW, rótulos 0–9; `adicional.npy` usa a ordem numérica dos nomes das imagens.
 Os pesos empacotados da entrega estão em `final_r5b/membros/`; não são os checkpoints brutos usados por esse comando.

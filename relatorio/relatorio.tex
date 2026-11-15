@@ -353,7 +353,7 @@ python dgx/final_ensemble.py --runs runs --extra data/adicional.npy \
   --out final_r5b --seeds 42 47 48 --val r_wrn282_ra \
   --final rf_wrn282_ra --epochs 200
 \end{verbatim}
-Esses scripts leem \texttt{SVHN\_DATA=data/svhn.npz}, descrito em \texttt{dgx/README.md}. Os treinos foram feitos
+Antes, \texttt{python dgx/prepare\_data.py} gera \texttt{data/svhn.npz} e \texttt{data/adicional.npy}; use \texttt{export SVHN\_DATA=data/svhn.npz} nos dois comandos. Os treinos foram feitos
 em GPUs NVIDIA (bf16), então um retreino em outro hardware pode diferir por frações de ponto.
 
 \paragraph{Relatório.} \texttt{python relatorio/gerar.py} refaz as tabelas e figuras a partir de
