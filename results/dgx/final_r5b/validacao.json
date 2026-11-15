@@ -1,0 +1,14 @@
+{
+  "validation_n": 7325,
+  "previous_correct": 7143,
+  "ten_members_correct": 7162,
+  "selected_seeds": [
+    42,
+    47,
+    48
+  ],
+  "selected_correct": 7147,
+  "predictions_n": 203856,
+  "changed_vs_previous": 2407,
+  "results_sha256": "3470c9d5b2bb9565843881d086278b4ac54d874bf003e19cbeefa273c044d6ed"
+}
