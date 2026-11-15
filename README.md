@@ -68,6 +68,11 @@ Os experimentos originais estão em [`svhn.ipynb`](svhn.ipynb). A solução atua
 O notebook reproduz os experimentos e a solução anterior pt4. Para gerar o RESULTS da solução atual,
 use `probs_extra.npy`, como indicado na seção de predições abaixo.
 
+**Predições da solução final (3 WRN-28-2 + RandAugment + TTA shift12):** `python predict.py --test` carrega os pesos de
+`results/dgx/final_r5b/membros/` (ou `s42.pt`, `s47.pt` e `s48.pt` na raiz), escreve
+`SAMUEL_WILKER_BERNARDO_RESULTS.txt` e confere os 98,20% no teste (~40 min no Mac com MPS). Reproduz o arquivo entregue
+sem nenhuma diferença. O notebook sobrescreve esse arquivo com as predições da solução anterior; rode o `predict.py` depois dele.
+
 1. No Colab: `Arquivo → Fazer upload de notebook` e escolha o `svhn.ipynb`.
 2. `Ambiente de execução → Alterar o tipo de ambiente → GPU`.
 3. `Executar tudo`. O dataset é baixado automaticamente.

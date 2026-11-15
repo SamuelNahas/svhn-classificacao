@@ -95,7 +95,7 @@ número de épocas e, na solução final, o número de modelos do ensemble. Batc
 largura da CNN mudaram pouco.
 
 \paragraph{Código.} O notebook \texttt{svhn.ipynb} tem o classificador linear, as MLPs, as CNNs, o ensemble de
-5 e a solução anterior pt4. A solução atual e suas predições usam os scripts em lote. Os treinos em lote (as triagens sobre a \texttt{cnn\_best}, as confirmações com
+5 e a solução anterior pt4. A solução atual usa os scripts em lote, e \texttt{predict.py} gera as suas predições a partir dos pesos. Os treinos em lote (as triagens sobre a \texttt{cnn\_best}, as confirmações com
 várias sementes e os ensembles de 60 épocas) usaram o script \texttt{dgx/svhn\_dgx.py}, com o mesmo protocolo, a
 mesma divisão e a mesma normalização do notebook. O script confere a divisão antes de treinar.
 
@@ -297,6 +297,11 @@ acertos na validação e 0,31 ponto no teste. O erro de teste cai de 2,11\% para
 \paragraph{Motivo da escolha.} A receita completa de WRN-28-2 com RandAugment ganhou $+0{,}56$ ponto
 por modelo na média pareada de três sementes em relação à CNN de 60 épocas. A solução foi escolhida
 pela validação, com TTA shift12 e média simples das probabilidades dos três membros.
+O plano registrado era um ensemble de 10 membros (\texttt{7162/7325 = 97,77\%} na validação), mas um defeito na fila
+de treinos deixou só as sementes 42, 47 e 48 retreinadas no treino inteiro antes do prazo da GPU. Aplicamos então a
+contingência já registrada, com as mesmas sementes em ordem fixa, e o trio ficou 4 acertos acima da solução
+anterior na validação. Essa margem está dentro do ruído entre sementes (cerca de 0,1 ponto); o que sustenta a escolha é
+o ganho pareado da receita (+0,56 ponto por modelo, 3 de 3 pares), e o teste foi lido só depois dela.
 
 {\sloppy
 \paragraph{Predições e reprodução.} Esta solução gerou as 203.856 linhas de
@@ -304,9 +309,55 @@ pela validação, com TTA shift12 e média simples das probabilidades dos três 
 Os pesos dos três membros, suas configurações, as probabilidades e a procedência estão em
 \texttt{results/dgx/final\_r5b/}. O arquivo entregue é o argmax por linha de \texttt{probs\_extra.npy};
 não é necessário avaliar novamente o teste para regenerá-lo. A inferência foi executada por
-\texttt{dgx/final\_ensemble.py}, e o README descreve a reprodução das predições. O conjunto adicional não tem rótulos,
+\texttt{dgx/final\_ensemble.py}; \texttt{predict.py} refaz as predições a partir dos pesos (Seção~\ref{sec:rodar}). O conjunto adicional não tem rótulos,
 portanto a acurácia de 98,20\% se refere ao teste SVHN.
 \par}
+
+\section{Como executar}\label{sec:rodar}
+
+O \texttt{codigo.zip} entregue traz o código, as configurações e os resultados; os pesos finais \texttt{s42.pt}, \texttt{s47.pt} e \texttt{s48.pt} são anexos à parte e devem ser copiados para a raiz do projeto descompactado (ou para \path{results/dgx/final_r5b/membros/}). O repositório completo está em \url{https://github.com/SamuelNahas/svhn-classificacao}. Todos os comandos partem da raiz do
+repositório; a semente é sempre 42 (e 47 e 48 nos outros dois membros finais).
+
+\paragraph{Preparação.} Python 3.11 ou mais novo. Funciona em CUDA, na GPU do Mac (MPS) ou em CPU.
+\begin{verbatim}
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt jupyter
+\end{verbatim}
+O SVHN é baixado sozinho pelo \texttt{torchvision} para \texttt{data/} (se o servidor de Stanford estiver fora
+do ar, o notebook usa o espelho oficial no Hugging Face). As imagens do professor devem estar em
+\texttt{data/adicional/} (\texttt{000000.png}, \texttt{000001.png}, \ldots).
+
+\paragraph{1. Gerar as predições com o modelo final.} Carrega os três pesos
+(\texttt{s42.pt}, \texttt{s47.pt} e \texttt{s48.pt}), aplica o TTA shift12, tira a média dos três membros e grava uma
+classe por linha. Com \texttt{--test}, também confere a acurácia no \texttt{split="test"} (\testeFinal{}). Na GPU do Mac (MPS) leva cerca de 40 minutos com \texttt{--test}.
+\begin{verbatim}
+python predict.py --test    # escreve SAMUEL_WILKER_BERNARDO_RESULTS.txt
+\end{verbatim}
+\texttt{results/dgx/final\_r5b/probs\_extra.npy} guarda as probabilidades do fechamento original.
+
+\paragraph{2. Reproduzir os experimentos (linear, MLP, CNN e ensembles).}
+\begin{verbatim}
+jupyter nbconvert --to notebook --execute svhn.ipynb --output svhn-executed.ipynb
+\end{verbatim}
+Também roda no Colab com GPU (\texttt{Executar tudo}). Os experimentos já concluídos ficam em \texttt{results/} e
+não são retreinados; sem esse cache a bateria completa leva cerca de 3h30 num Mac M5. O notebook gera as curvas,
+as tabelas de \texttt{results/} e, ao final, as predições da solução anterior (pt4), \textbf{sobrescrevendo} o arquivo RESULTS; por isso, rode o passo~1 depois dele.
+
+\paragraph{3. Retreinar a solução final.} Um treino por semente, com a configuração de
+\path{rf_wrn282_ra_s<semente>/config.json}, em \path{results/dgx/} (200 épocas; a pasta
+\path{r_wrn282_ra_s<semente>} é a versão só no treino, usada para escolher a época):
+\begin{verbatim}
+python dgx/svhn_dgx.py run --runs runs \
+  --config results/dgx/rf_wrn282_ra_s42/config.json
+python dgx/final_ensemble.py --runs runs --extra data/adicional.npy \
+  --out final_r5b --seeds 42 47 48 --val r_wrn282_ra \
+  --final rf_wrn282_ra --epochs 200
+\end{verbatim}
+Esses scripts leem \texttt{SVHN\_DATA=data/svhn.npz}, descrito em \texttt{dgx/README.md}. Os treinos foram feitos
+em GPUs NVIDIA (bf16), então um retreino em outro hardware pode diferir por frações de ponto.
+
+\paragraph{Relatório.} \texttt{python relatorio/gerar.py} refaz as tabelas e figuras a partir de
+\texttt{results/}, e \texttt{tectonic relatorio/relatorio.tex} compila o PDF.
 
 \clearpage
 \section{Conclusão}
