@@ -42,9 +42,9 @@ def _proximos(h_tr, y_tr, h_ref, y_ref):
         cand = np.unique(np.concatenate([o[lo[i]:hi[i]] for o, lo, hi in achados]))
         if not len(cand):
             continue
-        perto = cand[np.bitwise_count(h_ref[cand] ^ h_tr[i]) <= LIMIAR]
-        mesmo[i] = bool((y_ref[perto] == y_tr[i]).any())
-        dif[i] = bool(len(perto)) and not mesmo[i]
+        vizinhas = cand[np.bitwise_count(h_ref[cand] ^ h_tr[i]) <= LIMIAR]
+        mesmo[i] = bool((y_ref[vizinhas] == y_tr[i]).any())
+        dif[i] = bool(len(vizinhas)) and not mesmo[i]
     return mesmo, dif
 
 
@@ -59,9 +59,9 @@ def _vazamentos(x_tr, y_tr, x_val, y_val, x_te, y_te):
 def limpar(x_tr, y_tr, x_val, y_val, x_te, y_te):
     """(máscara das imagens de treino que ficam, relatório). Validação e teste não mudam."""
     identica, mesmo, dif = _vazamentos(x_tr, y_tr, x_val, y_val, x_te, y_te)
-    comuns = set(_sha(x_val)) & set(_sha(x_te))
+    comuns = len(set(_sha(x_val)) & set(_sha(x_te)))
     return ~(identica | mesmo), dict(identicas=int(identica.sum()), quase_mesmo_rotulo=int(mesmo.sum()),
-                                     quase_outro_rotulo=int(dif.sum()), validacao_teste_identicas=len(comuns))
+                                     quase_outro_rotulo=int(dif.sum()), validacao_teste_identicas=comuns)
 
 
 def verificar(x_tr, y_tr, x_val, y_val, x_te, y_te):

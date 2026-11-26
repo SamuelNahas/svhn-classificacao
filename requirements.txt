@@ -4,3 +4,4 @@ matplotlib
 pandas
 scipy
 pyarrow
+numpy>=2  # dgx/dados_v2.py usa np.bitwise_count

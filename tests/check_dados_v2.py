@@ -42,7 +42,7 @@ def teste_remove_quase_duplicata_de_mesmo_rotulo():
     assert rel["quase_mesmo_rotulo"] == 1, rel
 
 
-def teste_quase_duplicata_de_outro_rotulo_fica_e_e_relatada():
+def teste_quase_duplicata_de_outro_rotulo_fica__relatada():
     tr, val, te = imagens(4), imagens(2), imagens(2)
     tr[2] = perto(val[1])
     y_tr, y_val = np.array([5, 6, 3, 8]), np.array([0, 7])

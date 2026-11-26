@@ -7,9 +7,8 @@ Para o v2 (#35) também grava x_extra, y_extra (`split="extra"`) e keep_v2: más
 (dados_v2.py); o relatório vai para data/limpeza_v2.json. A validação é perm42[:len//10], como no v1.
 adicional.npy: imagens de data/adicional/*.png na ordem numérica dos nomes.
 """
-from pathlib import Path
-
 import json
+from pathlib import Path
 
 import numpy as np
 import torch
