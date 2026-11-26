@@ -39,7 +39,7 @@ Cada fase muda uma coisa em relação à base indicada. A ordem é fixa e regist
 |---|---|---|---|---|
 | 0 | Reprodução do v1 (3 WRN-28-2 + RandAugment, 200 épocas, só `train`) e custo por época com `train` + `extra` | — | O pipeline reproduz o v1: validação ~97,6%, dentro de 0,3 ponto de 97,57% | Se fora disso, parar e explicar o desvio antes da fase 1 (#36) |
 | 1 | `extra` no treino, mesma receita | Fase 0 | O Extra sobe a validação em mais de 0,3 ponto | Regra de ganho |
-| 2 | Mais épocas (o número vem do orçamento do Adendo 1) | Fase 1 | Treino mais longo sobe a validação | Regra de ganho |
+| 2 | Mais épocas (o número vem do orçamento do Adendo 2) | Fase 1 | Treino mais longo sobe a validação | Regra de ganho |
 | 3 | WRN-28-10 | melhor das fases 1–2 | A largura sobe a validação | Regra de ganho e custo ≤ saldo |
 | 4 | SAM/ASAM | melhor até a fase 3 | Erro menor em pontos mínimos planos | Regra de ganho |
 | 5 | Batch augmentation | melhor até a fase 4 | Mais cópias aumentadas por lote | Regra de ganho |
@@ -61,7 +61,7 @@ Qualquer técnica ou fonte nova entra só por adendo datado, antes de rodar.
 ## Orçamento de GPU e regra de parada
 
 O custo por época com o `extra` só existe depois da fase 0, então o teto em GPU-horas **não é fixado neste
-commit**. Ele entra no **Adendo 1**, commitado depois da fase 0 e antes da fase 1, com a tabela de custo por época
+commit**. Ele entra no **Adendo 2**, commitado depois da fase 0 e antes da fase 1, com a tabela de custo por época
 e por receita da #36. Regras que valem desde já:
 
 - Uma fase só começa se o custo estimado (custo por época medido × épocas × sementes) couber no saldo.
@@ -73,4 +73,22 @@ e por receita da #36. Regras que valem desde já:
 
 ## Adendos
 
-Nenhum até agora.
+### Adendo 1 — 26/11/2026, vazamento (#35), antes de qualquer treino
+
+Regra de vazamento do protocolo, em detalhe. Imagem **idêntica** = mesmo SHA-256 dos 3.072 bytes. **Quase-duplicata** =
+dHash de 64 bits (cinza, 8 × 9 blocos) a até **4 bits** de distância; o limiar foi fixado antes de olhar os dados.
+Cada imagem do treino (`train` fora da validação e `extra`) é comparada com a validação e o teste:
+
+- idêntica: sai do treino;
+- quase-duplicata de **mesmo rótulo**: sai do treino;
+- quase-duplicata de rótulo diferente: fica e é só relatada (costuma ser dígito parecido, não cópia);
+- repetição entre validação e teste: só relatada; validação e teste não mudam; repetição dentro do treino fica.
+
+A mesma limpeza vale desde a fase 0, e as contagens removidas vão para `docs/DADOS_V2.md`. A implementação é
+`dgx/dados_v2.py`, testada por `tests/check_dados_v2.py`; `dgx/prepare_data.py` a aplica e grava `keep_v2`.
+
+Limite conhecido: quase-duplicatas além de 4 bits (recortes deslocados, outra escala) não são detectadas.
+
+### Adendo 2 — reservado
+
+Teto de GPU-horas, depois da fase 0 e antes da fase 1 (#36).

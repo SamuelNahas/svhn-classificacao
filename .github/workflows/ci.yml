@@ -35,6 +35,9 @@ jobs:
       - name: Conferir as saídas
         run: python tests/check_smoke.py smoke
 
+      - name: Conferir a limpeza de vazamento dos dados do v2
+        run: python tests/check_dados_v2.py
+
       - name: Guardar o notebook executado e as saídas
         if: always()
         uses: actions/upload-artifact@v4

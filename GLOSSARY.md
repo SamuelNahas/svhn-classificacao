@@ -1,6 +1,6 @@
 # Glossário
 
-**Conjunto de treino**: parte do `split="train"` do SVHN usada para ajustar os pesos.
+**Conjunto de treino**: dados usados para ajustar os pesos. No v1, a parte do `split="train"` fora da validação; no v2, essa parte mais o Extra, menos o que for Vazamento.
 
 **Conjunto de validação**: fatia fixa do `split="train"`, separada do treino, usada para acompanhar os experimentos e escolher o modelo final. Nunca é usada para ajustar pesos.
 
@@ -9,6 +9,10 @@
 **Conjunto adicional**: imagens sem rótulo fornecidas pelo professor. Só é tocado depois que o modelo final está definido, para gerar o arquivo de predições.
 
 **Extra**: o `split="extra"` do SVHN (531 mil imagens rotuladas). Não é o Conjunto adicional do professor. O v1 não o usa; o v2 o usa no treino, nunca na validação.
+
+**Vazamento**: imagem presente no treino e também na validação ou no teste, seja idêntica (mesmo hash) ou uma Quase-duplicata com o mesmo rótulo. É removida do treino; validação e teste não mudam.
+
+**Quase-duplicata**: imagem cujo dHash de 64 bits difere de outra em até 4 bits. Com rótulo diferente, é só relatada, porque costuma ser um dígito parecido, não uma cópia.
 
 **Experimento**: um treino em que se altera uma única coisa em relação a um anterior, para medir o efeito dessa mudança.
 
