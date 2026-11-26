@@ -28,6 +28,7 @@
 | Ensemble de 5 CNNs + TTA | 97,31% | 97,63% |
 | Ensemble de 20 CNNs de 60 épocas + TTA (anterior) | 97,52% | 97,89% |
 | **3 WRN-28-2 + RandAugment + shift12 (atual)** | **97,57%** | **98,20%** |
+| *O número do v1 não é comparável com resultados que usam o `extra` (ver [`dgx/PESQUISA.md`](dgx/PESQUISA.md))* | | |
 
 - **30 experimentos controlados** (taxa de aprendizado, batch, otimizadores, ativações, regularização, data augmentation, cutout, label smoothing, profundidade × largura), além de avaliações extras, todos escolhidos **só pela validação** — a solução atual foi avaliada no teste após a escolha pela validação.
 - **119 treinos na pt4 e 19 nas rodadas 5/5b, em duas NVIDIA DGX Spark**, com plano registrado antes de rodar ([`dgx/PLANO.md`](dgx/PLANO.md)) para evitar ajuste ao acaso.
@@ -97,6 +98,27 @@ Do zero, a bateria completa levou cerca de 3h30 num Mac M5 (MPS).
 - Cada experimento é avaliado na época com melhor acurácia de **validação**.
 - `split="test"` só informa a acurácia; não participa de nenhuma escolha.
 - O conjunto adicional do professor só é usado depois que o modelo final está definido.
+
+## Limitações do v1
+
+O enunciado e as regras das issues #1 e #20 restringiram o que o v1 podia fazer:
+
+- só `split="train"` e `split="test"`; o `split="extra"` (531 mil imagens) fica de fora (enunciado);
+- `train` dividido em 90% treino e 10% validação, semente 42; escolha só pela validação e o teste só informa a acurácia (#1);
+- sem dados externos e sem pré-treino (enunciado);
+- o conjunto adicional do professor só entra no arquivo de predições final (enunciado, #1);
+- orçamento do trabalho (Colab e, depois, duas DGX Spark) e prazo da disciplina (#20).
+
+| | v1 (este trabalho) | v2 |
+|---|---|---|
+| Dados | `train` + `test` | `train` + `extra` (604 mil imagens) |
+| Validação | 10% do `train`, semente 42 | a definir no plano do v2 |
+| Pré-treino e dados externos | proibidos | a decidir nas regras do v2 |
+| Hardware | Colab e duas DGX Spark | a definir |
+| Objetivo | entrega acadêmica | modelo publicado no Hugging Face |
+| Continua | semente fixa, escolha só pela validação, teste lido após a escolha | idem |
+
+O v2 é acompanhado pelo épico #47.
 
 ## Experimentos
 
