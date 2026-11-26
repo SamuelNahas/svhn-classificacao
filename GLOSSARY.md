@@ -8,6 +8,8 @@
 
 **Conjunto adicional**: imagens sem rótulo fornecidas pelo professor. Só é tocado depois que o modelo final está definido, para gerar o arquivo de predições.
 
+**Extra**: o `split="extra"` do SVHN (531 mil imagens rotuladas). Não é o Conjunto adicional do professor. O v1 não o usa; o v2 o usa no treino, nunca na validação.
+
 **Experimento**: um treino em que se altera uma única coisa em relação a um anterior, para medir o efeito dessa mudança.
 
 **Modelo final**: o modelo escolhido pela acurácia de validação. É o mesmo modelo descrito no relatório, salvo nos pesos entregues e usado para gerar o arquivo de predições.
