@@ -13,29 +13,32 @@ Regras: [`docs/V2.md`](V2.md). Limpeza de vazamento: Adendo 1 de [`dgx/PLANO_V2.
 `data/svhn.npz` (com `x_extra`, `y_extra` e `keep_v2`) e `data/limpeza_v2.json`. `python tests/check_dados_v2.py`
 testa a limpeza com imagens sintéticas (roda no CI).
 
-## Resultado da preparação (26/11/2026, Mac com 17 GB de RAM)
+## Resultado da preparação (27/11/2026, Mac com 17 GB de RAM)
 
-`python dgx/prepare_data.py`: 25 min no total, quase tudo download do `extra` (1,3 GB) e swap; CPU: ~1,6 min. As contagens
-bateram com as publicadas.
+`python dgx/prepare_data.py`: as contagens bateram com as publicadas. A primeira rodada (26/11) levou 25 min, quase tudo
+download do `extra` (1,3 GB) e swap; a segunda levou 4 min e 22 s, sem download.
+
+Limiar de quase-duplicata: dHash a até **1 bit** (Adendo 2 do plano). A primeira rodada usou 4 bits e removeu
+24.117 imagens (4,0% do treino), com diferença média de pixel para a "vizinha" (mediana 38 de 255) perto da de um par
+aleatório da mesma classe (55): falsos positivos. O limiar de 4 bits foi substituído.
 
 | | Imagens |
 |---|---|
 | Treino do v2 antes da limpeza (65.932 do `train` + 531.131 do `extra`) | 597.063 |
 | Idênticas a validação ou teste (SHA-256) | **0** |
-| Quase-duplicatas de mesmo rótulo (dHash ≤ 4 bits): removidas | 24.117 (4,0%); 21.014 do `extra` e 3.103 do `train` |
-| Quase-duplicatas de rótulo diferente: só relatadas | 12.015 |
+| Quase-duplicatas de mesmo rótulo (dHash ≤ 1 bit): removidas | 1.431 (0,24%); 1.209 do `extra` e 222 do `train` |
+| Quase-duplicatas de rótulo diferente: só relatadas | 546 |
 | Repetições idênticas entre validação e teste | 0 |
-| **Treino do v2 depois da limpeza** | **572.946** |
+| **Treino do v2 depois da limpeza** | **595.632** |
 | Validação | 7.325 |
 
-Treino do v2 por classe (0 a 9): 48.362, 91.069, 82.115, 67.088, 53.989, 58.696, 46.202, 48.183, 39.293, 37.949.
+Treino do v2 por classe (0 a 9): 50.014, 101.872, 84.183, 68.380, 57.178, 59.691, 46.739, 49.053, 39.889, 38.633.
 
 ### Leitura
 
 - **Não há vazamento exato:** nenhuma imagem do treino é idêntica a uma da validação ou do teste.
-- **As 24.117 removidas parecem falsos positivos do dHash, não cópias.** Em 300 removidas sorteadas, a diferença média
-  de pixel para a vizinha mais próxima tem mediana 38,3 (de 255) e p90 75,1; um par aleatório da mesma classe tem
-  mediana 55,3, e só 9,7% das 300 têm diferença menor que 20. A distância de dHash de 173 das 300 é exatamente 4 bits
-  (o limite). Não são imagens planas: o desvio de pixel das removidas (mediana 32,4) é igual ao das mantidas (31,6).
-- **Consequência:** com o limiar de 4 bits, o v2 treina com 24 mil imagens a menos que o necessário (4%), em sua
-  maioria do `extra`. Mudar o limiar exige adendo datado ao plano, antes de qualquer treino (decisão pendente).
+- **O dHash acha poucas cópias de verdade.** Em 300 removidas (1 bit) sorteadas, a diferença média de pixel para a vizinha
+  tem mediana 34,1 (par aleatório da mesma classe: 56,9) e só 1% fica abaixo de 10 de 255. Ou seja, quase nenhuma é
+  quase-cópia; são dígitos de forma parecida. Como só 1.431 imagens (0,24%) saem, o custo é pequeno e fica.
+- **Limite:** o dHash não distingue cópia de dígito parecido. Um critério de pixel (por exemplo, diferença média < 10)
+  seria mais fiel, mas exigiria novo adendo; não é necessário com 0 idênticas.

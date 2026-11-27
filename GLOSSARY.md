@@ -12,7 +12,7 @@
 
 **Vazamento**: imagem presente no treino e também na validação ou no teste, seja idêntica (mesmo hash) ou uma Quase-duplicata com o mesmo rótulo. É removida do treino; validação e teste não mudam.
 
-**Quase-duplicata**: imagem cujo dHash de 64 bits difere de outra em até 4 bits. Com rótulo diferente, é só relatada, porque costuma ser um dígito parecido, não uma cópia.
+**Quase-duplicata**: imagem cujo dHash de 64 bits difere de outra em até 1 bit. Com rótulo diferente, é só relatada, porque costuma ser um dígito parecido, não uma cópia.
 
 **Experimento**: um treino em que se altera uma única coisa em relação a um anterior, para medir o efeito dessa mudança.
 

@@ -1,14 +1,15 @@
 """Limpeza de vazamento dos dados do v2 (#35). Numpy puro: imagens uint8 (N, 3, 32, 32).
 
 limpar() devolve a máscara das imagens de treino que ficam e um relatório; o treino é `train` + `extra`.
-Idêntica = mesmo SHA-256. Quase-duplicata = dHash de 64 bits a até LIMIAR bits (fixado no plano do v2).
+Idêntica = mesmo SHA-256. Quase-duplicata = dHash de 64 bits a até LIMIAR bits (fixado no plano do v2, Adendos 1 e 2).
 """
 import hashlib
 
 import numpy as np
 
-LIMIAR = 4
-CORTES = [(0, 13), (13, 13), (26, 13), (39, 13), (52, 12)]  # LIMIAR+1 pedaços: algum é igual se a distância <= LIMIAR
+LIMIAR = 1  # Adendo 2 do plano do v2 (era 4: removia 4% do treino, quase tudo falso positivo)
+_LIM = np.linspace(0, 64, LIMIAR + 2).astype(int)
+CORTES = [(int(a), int(b - a)) for a, b in zip(_LIM, _LIM[1:])]  # LIMIAR+1 pedaços: algum é igual se a distância <= LIMIAR
 
 
 def _sha(x):
