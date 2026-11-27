@@ -39,7 +39,7 @@ Cada fase muda uma coisa em relação à base indicada. A ordem é fixa e regist
 |---|---|---|---|---|
 | 0 | Reprodução do v1 (3 WRN-28-2 + RandAugment, 200 épocas, só `train`) e custo por época com `train` + `extra` | — | O pipeline reproduz o v1: validação ~97,6%, dentro de 0,3 ponto de 97,57% | Se fora disso, parar e explicar o desvio antes da fase 1 (#36) |
 | 1 | `extra` no treino, mesma receita | Fase 0 | O Extra sobe a validação em mais de 0,3 ponto | Regra de ganho |
-| 2 | Mais épocas (o número vem do orçamento do Adendo 3) | Fase 1 | Treino mais longo sobe a validação | Regra de ganho |
+| 2 | Mais épocas (400, pelo orçamento do Adendo 3) | Fase 1 | Treino mais longo sobe a validação | Regra de ganho |
 | 3 | WRN-28-10 | melhor das fases 1–2 | A largura sobe a validação | Regra de ganho e custo ≤ saldo |
 | 4 | SAM/ASAM | melhor até a fase 3 | Erro menor em pontos mínimos planos | Regra de ganho |
 | 5 | Batch augmentation | melhor até a fase 4 | Mais cópias aumentadas por lote | Regra de ganho |
@@ -97,6 +97,28 @@ dados reais (`docs/DADOS_V2.md`) mostrou que, com 4 bits, 24.117 imagens (4% do 
 classe (55): falsos positivos, não cópias. Nenhuma imagem era idêntica (SHA-256). O resto da regra do Adendo 1 não
 muda. O limiar de 4 bits fica registrado como substituído.
 
-### Adendo 3 — reservado
+### Adendo 3 — 27/11/2026, fim da fase 0 e orçamento de GPU (#36), antes da fase 1
 
-Teto de GPU-horas, depois da fase 0 e antes da fase 1 (#36).
+**Fase 0 concluída.** A receita do v1 (3 WRN-28-2 + RandAugment + TTA shift12, 200 épocas), no pipeline do v2 só com o
+`train` limpo, deu **97,57% de validação (7.147/7.325)**, o mesmo número do v1; McNemar ensemble contra ensemble: 28
+acertos só do v1, 28 só do v2, p = 1,0. Individuais (TTA shift12): 97,45 / 97,43 / 97,31% (v1: 97,42 / 97,41 / 97,38%).
+Critério da fase 0 (dentro de 0,3 ponto): **passou**. Resultados em `results/v2/`. O teste não foi calculado (o
+`train` do v2 não o toca; conferido: nenhum `test_probs.npy`), então a #36 não confere os 98,20% de teste; isso fica para
+o fechamento. A fase 1 está liberada, com **200 épocas** (só o dado muda).
+
+**Custo medido** (Spark-1, bf16, batch 128, WRN-28-2, RandAugment na CPU, `TRAIN_EVAL_N=7325`):
+
+| Receita | Tempo por época | Custo de 3 sementes × 200 épocas |
+|---|---|---|
+| Fase 0 (só `train` limpo), 3 treinos em paralelo | 17,1 s cada | 1,05 GPU-h (medido, 62 min) |
+| `extra`, 1 treino sozinho | 46,5 a 50,2 s (4 a 10 processos) | 2,8 GPU-h por semente |
+| `extra`, 3 treinos em paralelo | 152 a 156 s cada (~51 s por treino) | **8,6 GPU-h (por receita)** |
+
+Com o `extra` a GPU já satura: paralelizar não ganha vazão. O RandAugment na CPU não é gargalo (4, 10 e 16 processos
+dão o mesmo tempo), então não há RandAugment na GPU. GPU-h aqui é tempo de relógio de uma GPU ocupada.
+
+**Teto: 150 GPU-h** no total do v2. Gasto até aqui: ~1,4 GPU-h (fase 0 e medições de custo); saldo ~148,6. Estimativas por
+fase (só a fase 1 é medida; as demais são estimativas a medir em 2 épocas antes de começar): fase 1, 8,6; fase 2 (400
+épocas), ~17; fase 3 (WRN-28-10), ~10 vezes a fase 1, ~86; fases 4 a 6 (SAM, batch augmentation, mixup), 1 a 4 vezes a
+fase 1 cada. A soma passa do teto, então a regra de parada por saldo (acima) decide até onde o plano chega.
+
