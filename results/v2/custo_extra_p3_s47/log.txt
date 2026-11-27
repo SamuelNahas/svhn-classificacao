@@ -1,0 +1,2 @@
+14:03:04 ep   1/2 | treino loss 0.3017 acc 0.9122 | val loss 0.2732 acc 0.9188 | 156.1s + aval 2.9s
+14:05:41 ep   2/2 | treino loss 0.2665 acc 0.9237 | val loss 0.2415 acc 0.9302 | 156.2s + aval 0.6s

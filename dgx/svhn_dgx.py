@@ -40,6 +40,8 @@ DEFAULTS = dict(  # padrões = cnn_best do notebook (#17), menos a arquitetura
     weight_decay=0.05, label_smoothing=0.1, augment=True, geo=1.0, color=0.0, cutout=True, cutout_size=8,
     cutout_p=1.0, ema=0.0, amp="none", seed=SEED, split_seed=SEED, final=False, stop_epoch=None,
     policy=None, ra_n=2, ra_m=9,  # augment automático por imagem, na CPU (substitui o `augment` geométrico)
+    v2=None,  # #36: None = dados do v1; "train" ou "extra" = treino limpo do v2 (keep_v2 de prepare_data.py)
+    workers=4,  # processos do RandAugment na CPU
     mt=0.0, mt_ramp=12,  # Mean Teacher: peso da consistência com o professor (EMA) e épocas de rampa; exige `ema`
 )
 
@@ -64,7 +66,7 @@ class PolicyData(torch.utils.data.Dataset):
 def policy_loader(x, y, cfg):
     torch.set_num_threads(1)
     return torch.utils.data.DataLoader(
-        PolicyData(x.cpu(), y.cpu(), cfg), batch_size=cfg["batch"], shuffle=True, num_workers=4,
+        PolicyData(x.cpu(), y.cpu(), cfg), batch_size=cfg["batch"], shuffle=True, num_workers=cfg["workers"],
         persistent_workers=True, drop_last=len(x) % cfg["batch"] == 1, pin_memory=True,
         generator=torch.Generator().manual_seed(cfg["seed"]))
 
@@ -86,8 +88,18 @@ def load_data(cfg):
     del px
     if cfg["final"]:  # versão final: todo o split="train"
         tr, val = perm, perm[:0]
+    x_tr, y_tr = x[tr], y[tr]
+    if cfg["v2"]:  # validação e normalização como no v1; só o treino muda (keep_v2 segue a ordem perm42[len//10:], extra)
+        assert cfg["split_seed"] == SEED and not cfg["final"], "v2 usa a divisão 42 e a validação separada"
+        keep = torch.from_numpy(d["keep_v2"])
+        if cfg["v2"] == "extra":
+            x_tr = torch.cat([x_tr, torch.from_numpy(d["x_extra"])])
+            y_tr = torch.cat([y_tr, torch.from_numpy(d["y_extra"])])
+        else:
+            keep = keep[:len(tr)]
+        x_tr, y_tr = x_tr[keep], y_tr[keep]
     g = lambda t: t.to(DEVICE)
-    return (g(x[tr]), g(y[tr]), g(x[val]), g(y[val]), g(torch.from_numpy(d["x_test"])),
+    return (g(x_tr), g(y_tr), g(x[val]), g(y[val]), g(torch.from_numpy(d["x_test"])),
             g(torch.from_numpy(d["y_test"])), g(mean.view(1, 3, 1, 1)), g(std.view(1, 3, 1, 1)))
 
 
@@ -296,10 +308,11 @@ def train(cfg, run_dir):
     final_model = build(cfg)
     final_model.load_state_dict({k.removeprefix("module."): v for k, v in best["state"].items()
                                  if k != "n_averaged"})
-    _, _, test_probs = evaluate(final_model, x_te, y_te, mean, std, cfg)
     torch.save(dict(config=cfg, state_dict={k: v.cpu() for k, v in final_model.state_dict().items()},
                     epoch=best["epoch"]), run_dir / "best.pt")
-    np.save(run_dir / "test_probs.npy", test_probs.cpu().numpy().astype(np.float32))  # só para a avaliação final
+    if not cfg["v2"]:  # no v2 o teste só é lido no fechamento (dgx/PLANO_V2.md)
+        _, _, test_probs = evaluate(final_model, x_te, y_te, mean, std, cfg)
+        np.save(run_dir / "test_probs.npy", test_probs.cpu().numpy().astype(np.float32))  # só para a avaliação final
     if not cfg["final"]:
         np.save(run_dir / "val_probs.npy", best["val_probs"].cpu().numpy().astype(np.float32))
     b = best["epoch"] - 1
