@@ -38,7 +38,6 @@ def _proximos(h_tr, y_tr, h_ref, y_ref):
         ch = chave[ordem]
         k = _pedaco(h_tr, ini, larg)
         achados.append((ordem, np.searchsorted(ch, k, "left"), np.searchsorted(ch, k, "right")))
-    # ponytail: laço em Python sobre as imagens com candidatas; vetorizar se o extra pesar
     for i in range(len(h_tr)):
         cand = np.unique(np.concatenate([o[lo[i]:hi[i]] for o, lo, hi in achados]))
         if not len(cand):
@@ -61,8 +60,10 @@ def limpar(x_tr, y_tr, x_val, y_val, x_te, y_te):
     """(máscara das imagens de treino que ficam, relatório). Validação e teste não mudam."""
     identica, mesmo, dif = _vazamentos(x_tr, y_tr, x_val, y_val, x_te, y_te)
     comuns = len(set(_sha(x_val)) & set(_sha(x_te)))
+    val_te, _ = _proximos(dhash(x_val), y_val, dhash(x_te), y_te)
     return ~(identica | mesmo), dict(identicas=int(identica.sum()), quase_mesmo_rotulo=int(mesmo.sum()),
-                                     quase_outro_rotulo=int(dif.sum()), validacao_teste_identicas=comuns)
+                                     quase_outro_rotulo=int(dif.sum()), validacao_teste_identicas=comuns,
+                                     validacao_teste_quase_mesmo_rotulo=int(val_te.sum()) - comuns)
 
 
 def verificar(x_tr, y_tr, x_val, y_val, x_te, y_te):

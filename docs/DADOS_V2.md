@@ -28,9 +28,12 @@ aleatório da mesma classe (55): falsos positivos. O limiar de 4 bits foi substi
 | Idênticas a validação ou teste (SHA-256) | **0** |
 | Quase-duplicatas de mesmo rótulo (dHash ≤ 1 bit): removidas | 1.431 (0,24%); 1.209 do `extra` e 222 do `train` |
 | Quase-duplicatas de rótulo diferente: só relatadas | 546 |
-| Repetições idênticas entre validação e teste | 0 |
+| Repetições entre validação e teste: idênticas; quase-duplicatas de mesmo rótulo (1 bit), só relatadas | 0; 17 |
 | **Treino do v2 depois da limpeza** | **595.632** |
 | Validação | 7.325 |
+
+`keep_v2` segue a ordem do treino: primeiro as 65.932 imagens do `train` (em `perm42[7325:]`), depois as 531.131 do `extra`.
+A fase 0 (só `train`) usa `keep_v2[:65932]`.
 
 Treino do v2 por classe (0 a 9): 50.014, 101.872, 84.183, 68.380, 57.178, 59.691, 46.739, 49.053, 39.889, 38.633.
 

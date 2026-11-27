@@ -71,6 +71,38 @@ def teste_apos_limpar_verificar_passa_e_validacao_teste_so_e_relatada():
     assert keep.sum() == 3, keep
 
 
+def da_grade(grade):
+    """Imagem cujo dHash é a da grade 8 × 9 de blocos (mesmas divisões de colunas do dhash)."""
+    larg = [len(c) for c in np.array_split(np.arange(32), 9)]
+    img = np.repeat(np.repeat(grade, 4, 0), larg, 1).astype(np.uint8)
+    return np.stack([img] * 3)
+
+
+def teste_quase_duplicata_com_um_bit_diferente_em_qualquer_metade_do_hash():
+    base = np.tile(np.arange(1, 10) * 20, (8, 1))
+    ref = da_grade(base)
+    for linha, coluna in [(0, 0), (7, 7)]:  # primeiro e último bit do hash
+        g = base.copy()
+        g[linha, coluna + 1] = 0
+        tr = np.stack([da_grade(g), imagens(1)[0]])
+        keep, _ = D.limpar(tr, np.array([3, 4]), ref[None], np.array([3]), imagens(1), np.array([0]))
+        assert keep.tolist() == [False, True], (linha, coluna, keep)
+
+
+def teste_repeticao_dentro_do_treino_fica():
+    tr, val, te = imagens(3), imagens(1), imagens(1)
+    tr[1] = tr[0]
+    keep, _ = D.limpar(tr, np.array([1, 1, 2]), val, np.array([0]), te, np.array([0]))
+    assert keep.all(), keep
+
+
+def teste_quase_duplicata_entre_validacao_e_teste_so_e_relatada():
+    tr, val, te = imagens(2), imagens(2), imagens(2)
+    te[0] = perto(val[1])
+    keep, rel = D.limpar(tr, np.array([1, 2]), val, np.array([0, 5]), te, np.array([5, 3]))
+    assert keep.all() and rel["validacao_teste_quase_mesmo_rotulo"] == 1, rel
+
+
 TESTES = [v for k, v in sorted(globals().items()) if k.startswith("teste_")]
 
 if __name__ == "__main__":
